@@ -1,0 +1,56 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isDeveloper() {
+      return isAuthenticated()
+        && exists(/databases/$(database)/documents/developers/$(request.auth.uid))
+        && get(/databases/$(database)/documents/developers/$(request.auth.uid)).data.email == request.auth.token.email;
+    }
+
+    function isOwnClient() {
+      return isAuthenticated()
+        && resource.data.email == request.auth.token.email;
+    }
+
+    function isOwnClientById(clientId) {
+      return isAuthenticated()
+        && get(/databases/$(database)/documents/clients/$(clientId)).data.email == request.auth.token.email;
+    }
+
+    match /clients/{clientId} {
+      allow read: if isDeveloper() || isOwnClient();
+      allow create, update, delete: if isDeveloper();
+    }
+
+    match /contracts/{contractId} {
+      allow read: if isDeveloper()
+        || (isAuthenticated()
+            && resource.data.clientId != null
+            && isOwnClientById(resource.data.clientId));
+      allow create, update, delete: if isDeveloper();
+    }
+
+    match /projects/{projectId} {
+      allow read: if isDeveloper()
+        || (isAuthenticated()
+            && resource.data.clientId != null
+            && isOwnClientById(resource.data.clientId));
+      allow create, update, delete: if isDeveloper();
+    }
+
+    match /developers/{developerId} {
+      // Permite get do próprio UID (mesmo se o doc não existir) —
+      // necessário para o app distinguir cliente vs desenvolvedor no login.
+      allow read: if isAuthenticated() && (
+        request.auth.uid == developerId || isDeveloper()
+      );
+      allow write: if false;
+    }
+  }
+}
