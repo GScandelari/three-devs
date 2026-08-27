@@ -168,29 +168,6 @@ export async function createClient(data: {
   return id;
 }
 
-export async function createAuthUser(email: string, password: string) {
-  const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
-  if (!apiKey) throw new Error("Firebase API key não configurada");
-
-  const res = await fetch(
-    `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, returnSecureToken: true }),
-    },
-  );
-
-  const body = await res.json();
-  if (!res.ok) {
-    const message =
-      body?.error?.message === "EMAIL_EXISTS"
-        ? "Este e-mail já possui conta de acesso."
-        : "Não foi possível criar a conta de acesso.";
-    throw new Error(message);
-  }
-}
-
 export async function getContractById(
   contractId: string,
 ): Promise<Contract | null> {

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import {
-  createAuthUser,
   createClient,
   getAllClients,
 } from "@/lib/firebase/firestore";
@@ -57,11 +56,7 @@ export default function AdminClientsPage() {
       });
 
       if (form.password) {
-        try {
-          await setClientPassword(form.email, form.password);
-        } catch {
-          await createAuthUser(form.email, form.password);
-        }
+        await setClientPassword(form.email, form.password);
       }
 
       setSuccess(

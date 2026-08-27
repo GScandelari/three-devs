@@ -80,3 +80,7 @@ Secrets necessários em **Settings → Secrets**:
 - [ ] Assinatura digital (DocuSign, Clicksign)
 - [ ] Notificações ao cliente
 - [ ] Domínio customizado
+
+## Segurança
+
+Consulte [docs/SEGURANCA.md](docs/SEGURANCA.md) para práticas de secrets, `.env` e restrições da API Key Firebase.
