@@ -5,15 +5,32 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 
 export function AdminGuard({ children }: { children: React.ReactNode }) {
-  const { user, isDeveloper, loading, firebaseConfigured } = useAuth();
+  const { user, developer, isDeveloper, loading, firebaseConfigured } =
+    useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (loading) return;
     if (!firebaseConfigured) return;
-    if (!user) router.replace("/login");
-    else if (!isDeveloper) router.replace("/portal");
-  }, [user, isDeveloper, loading, firebaseConfigured, router]);
+    if (!user) {
+      router.replace("/login");
+      return;
+    }
+    if (!isDeveloper) {
+      router.replace("/portal");
+      return;
+    }
+    if (developer?.mustChangePassword) {
+      router.replace("/change-password");
+    }
+  }, [
+    user,
+    developer,
+    isDeveloper,
+    loading,
+    firebaseConfigured,
+    router,
+  ]);
 
   if (loading) {
     return (
@@ -23,7 +40,14 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!firebaseConfigured || !user || !isDeveloper) return null;
+  if (
+    !firebaseConfigured ||
+    !user ||
+    !isDeveloper ||
+    developer?.mustChangePassword
+  ) {
+    return null;
+  }
 
   return <>{children}</>;
 }

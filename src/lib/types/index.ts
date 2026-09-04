@@ -97,4 +97,6 @@ export interface Developer {
   email: string;
   name: string;
   role: "developer" | "admin";
+  mustChangePassword?: boolean;
+  createdAt?: string;
 }

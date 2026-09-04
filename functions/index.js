@@ -60,3 +60,66 @@ exports.setClientPassword = onCall(
     }
   },
 );
+
+exports.provisionDeveloper = onCall(
+  { region: "us-central1" },
+  async (request) => {
+    await assertDeveloper(request.auth?.uid);
+
+    const email = String(request.data?.email ?? "")
+      .trim()
+      .toLowerCase();
+    const name = String(request.data?.name ?? "").trim();
+    const password = String(request.data?.password ?? "");
+    const role = String(request.data?.role ?? "admin");
+
+    if (!email || !email.includes("@")) {
+      throw new HttpsError("invalid-argument", "E-mail inválido.");
+    }
+    if (!name) {
+      throw new HttpsError("invalid-argument", "Nome é obrigatório.");
+    }
+    if (password.length < 6) {
+      throw new HttpsError(
+        "invalid-argument",
+        "A senha deve ter pelo menos 6 caracteres.",
+      );
+    }
+
+    const auth = getAuth();
+    const db = getFirestore();
+    let uid;
+    let created = false;
+
+    try {
+      const existing = await auth.getUserByEmail(email);
+      uid = existing.uid;
+      await auth.updateUser(uid, { password });
+    } catch (err) {
+      if (err?.code === "auth/user-not-found") {
+        const user = await auth.createUser({ email, password });
+        uid = user.uid;
+        created = true;
+      } else {
+        console.error("provisionDeveloper auth error:", err);
+        throw new HttpsError(
+          "internal",
+          "Não foi possível provisionar o desenvolvedor.",
+        );
+      }
+    }
+
+    await db.doc(`developers/${uid}`).set(
+      {
+        email,
+        name,
+        role: role === "developer" ? "developer" : "admin",
+        mustChangePassword: true,
+        createdAt: new Date().toISOString(),
+      },
+      { merge: true },
+    );
+
+    return { ok: true, created, uid };
+  },
+);

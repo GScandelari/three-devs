@@ -50,7 +50,12 @@ service cloud.firestore {
       allow read: if isAuthenticated() && (
         request.auth.uid == developerId || isDeveloper()
       );
-      allow write: if false;
+      // Dev pode limpar apenas o flag mustChangePassword no próprio perfil.
+      allow update: if isAuthenticated()
+        && request.auth.uid == developerId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["mustChangePassword"])
+        && request.resource.data.mustChangePassword == false;
+      allow create, delete: if false;
     }
   }
 }

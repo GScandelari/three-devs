@@ -51,6 +51,12 @@ export async function getDeveloperByUid(
   }
 }
 
+export async function clearMustChangePassword(uid: string) {
+  await updateDoc(doc(dbOrThrow(), "developers", uid), {
+    mustChangePassword: false,
+  });
+}
+
 export async function getClientByEmail(email: string): Promise<Client | null> {
   const db = getFirebaseDb();
   if (!db) return null;

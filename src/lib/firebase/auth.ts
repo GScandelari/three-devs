@@ -2,6 +2,9 @@ import {
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   onAuthStateChanged,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
   type User,
 } from "firebase/auth";
 import { getFirebaseAuth } from "./config";
@@ -25,4 +28,17 @@ export function subscribeToAuth(callback: (user: User | null) => void) {
     return () => {};
   }
   return onAuthStateChanged(auth, callback);
+}
+
+export async function changeOwnPassword(
+  currentPassword: string,
+  newPassword: string,
+) {
+  const auth = getFirebaseAuth();
+  const user = auth?.currentUser;
+  if (!user?.email) throw new Error("Usuário não autenticado");
+
+  const credential = EmailAuthProvider.credential(user.email, currentPassword);
+  await reauthenticateWithCredential(user, credential);
+  await updatePassword(user, newPassword);
 }

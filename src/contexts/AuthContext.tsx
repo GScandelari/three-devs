@@ -108,7 +108,10 @@ export async function resolvePostLoginRoute(
   email: string,
 ): Promise<string> {
   const developer = await getDeveloperByUid(uid);
-  if (developer) return "/admin";
+  if (developer) {
+    if (developer.mustChangePassword) return "/change-password";
+    return "/admin";
+  }
 
   const client = await getClientByEmail(email);
   if (client && (await clientHasSignedContract(client.id))) return "/portal";
