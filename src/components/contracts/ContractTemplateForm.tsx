@@ -73,24 +73,26 @@ export function ContractTemplateForm({
                   key={field.key}
                   className={field.type === "textarea" ? "sm:col-span-2" : ""}
                 >
-                  <label className="block text-sm font-medium text-slate-700">
+                  <label htmlFor={`contract-${field.key}`} className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                     {field.label}
                   </label>
                   {field.type === "textarea" ? (
                     <textarea
+                      id={`contract-${field.key}`}
                       rows={3}
                       value={value[field.key]}
                       placeholder={field.placeholder}
                       onChange={(e) => update(field.key, e.target.value)}
-                      className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                      className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-400"
                     />
                   ) : (
                     <input
+                      id={`contract-${field.key}`}
                       type={field.type ?? "text"}
                       value={value[field.key]}
                       placeholder={field.placeholder}
                       onChange={(e) => update(field.key, e.target.value)}
-                      className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                      className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-400"
                     />
                   )}
                 </div>

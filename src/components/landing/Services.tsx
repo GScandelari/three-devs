@@ -18,13 +18,13 @@ const services = [
 
 export function Services() {
   return (
-    <section id="servicos" className="border-t border-slate-100 py-24">
+    <section id="servicos" className="border-t border-slate-100 dark:border-slate-800 py-24">
       <div className="mx-auto max-w-6xl px-6">
         <div className="mb-16 max-w-2xl">
-          <h2 className="text-3xl font-semibold tracking-tight text-slate-900">
+          <h2 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
             O que fazemos
           </h2>
-          <p className="mt-4 text-slate-600">
+          <p className="mt-4 text-slate-600 dark:text-slate-300">
             Cada membro do time traz leads e conduz a relação com o cliente.
             Juntos, entregamos soluções completas.
           </p>
@@ -34,12 +34,12 @@ export function Services() {
           {services.map((service) => (
             <div
               key={service.title}
-              className="rounded-2xl border border-slate-100 bg-white p-8 shadow-sm"
+              className="rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 shadow-sm"
             >
-              <h3 className="text-lg font-semibold text-slate-900">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                 {service.title}
               </h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-600">
+              <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                 {service.description}
               </p>
             </div>

@@ -43,9 +43,12 @@ function ProjectAdminContent() {
 
   if (!projectId) {
     return (
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-slate-500 dark:text-slate-400">
         Projeto não informado.{" "}
-        <Link href="/admin/projects" className="text-indigo-600">
+        <Link
+          href="/admin/projects"
+          className="text-indigo-600 dark:text-indigo-400"
+        >
           Voltar
         </Link>
       </p>
@@ -53,7 +56,11 @@ function ProjectAdminContent() {
   }
 
   if (loading || !project) {
-    return <p className="text-sm text-slate-500">Carregando...</p>;
+    return (
+      <p className="text-sm text-slate-500 dark:text-slate-400">
+        Carregando...
+      </p>
+    );
   }
 
   const currentProject = project;
@@ -102,17 +109,19 @@ function ProjectAdminContent() {
     <div>
       <Link
         href="/admin/projects"
-        className="text-sm text-slate-500 hover:text-slate-900"
+        className="text-sm text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
       >
         ← Voltar aos projetos
       </Link>
 
       <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
             {project.name}
           </h1>
-          <p className="mt-2 max-w-2xl text-slate-600">{project.description}</p>
+          <p className="mt-2 max-w-2xl text-slate-600 dark:text-slate-400">
+            {project.description}
+          </p>
         </div>
         <span
           className={`rounded-full px-3 py-1 text-sm font-medium ${projectStatusColors[project.status]}`}
@@ -121,8 +130,8 @@ function ProjectAdminContent() {
         </span>
       </div>
 
-      <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6">
-        <h2 className="text-sm font-medium uppercase tracking-wider text-slate-400">
+      <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+        <h2 className="text-sm font-medium uppercase tracking-wider text-slate-400 dark:text-slate-400">
           Status do projeto
         </h2>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -133,8 +142,8 @@ function ProjectAdminContent() {
                 onClick={() => handleStatusChange(status)}
                 className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
                   project.status === status
-                    ? "bg-indigo-600 text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    ? "bg-indigo-600 text-white dark:bg-indigo-500"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                 }`}
               >
                 {projectStatusLabels[status]}
@@ -145,21 +154,24 @@ function ProjectAdminContent() {
       </section>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
-        <section className="rounded-xl border border-slate-200 bg-white p-6">
-          <h2 className="font-medium text-slate-900">Adicionar nota</h2>
+        <section className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+          <h2 className="font-medium text-slate-900 dark:text-slate-100">
+            Adicionar nota
+          </h2>
           <form onSubmit={handleAddNote} className="mt-4 space-y-3">
             <textarea
               rows={3}
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Atualização para o cliente..."
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-400"
             />
-            <label className="flex items-center gap-2 text-sm text-slate-600">
+            <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
               <input
                 type="checkbox"
                 checked={important}
                 onChange={(e) => setImportant(e.target.checked)}
+                className="accent-indigo-600 dark:accent-indigo-400"
               />
               Marcar como importante
             </label>
@@ -170,7 +182,9 @@ function ProjectAdminContent() {
 
           <div className="mt-6 space-y-3">
             {(project.notes ?? []).length === 0 ? (
-              <p className="text-sm text-slate-500">Nenhuma nota ainda.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Nenhuma nota ainda.
+              </p>
             ) : (
               [...(project.notes ?? [])]
                 .reverse()
@@ -179,8 +193,8 @@ function ProjectAdminContent() {
                     key={n.id}
                     className={`rounded-lg p-3 text-sm ${
                       n.important
-                        ? "border border-amber-200 bg-amber-50 text-amber-900"
-                        : "bg-slate-50 text-slate-700"
+                        ? "border border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200"
+                        : "bg-slate-50 text-slate-700 dark:bg-slate-800/60 dark:text-slate-300"
                     }`}
                   >
                     <p>{n.content}</p>
@@ -194,20 +208,22 @@ function ProjectAdminContent() {
           </div>
         </section>
 
-        <section className="rounded-xl border border-slate-200 bg-white p-6">
-          <h2 className="font-medium text-slate-900">Links do projeto</h2>
+        <section className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+          <h2 className="font-medium text-slate-900 dark:text-slate-100">
+            Links do projeto
+          </h2>
           <form onSubmit={handleAddLink} className="mt-4 space-y-3">
             <input
               value={linkLabel}
               onChange={(e) => setLinkLabel(e.target.value)}
               placeholder="Label (ex: Staging)"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-400"
             />
             <input
               value={linkUrl}
               onChange={(e) => setLinkUrl(e.target.value)}
               placeholder="URL"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-400"
             />
             <Button type="submit" disabled={saving}>
               Adicionar link
@@ -216,7 +232,9 @@ function ProjectAdminContent() {
 
           <ul className="mt-6 space-y-2">
             {(project.links ?? []).length === 0 ? (
-              <p className="text-sm text-slate-500">Nenhum link ainda.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Nenhum link ainda.
+              </p>
             ) : (
               project.links.map((link) => (
                 <li key={link.id}>
@@ -224,7 +242,7 @@ function ProjectAdminContent() {
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-indigo-600 hover:text-indigo-500"
+                    className="text-sm text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
                   >
                     {link.label} →
                   </a>
@@ -240,7 +258,13 @@ function ProjectAdminContent() {
 
 export default function AdminProjectPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-slate-500">Carregando...</p>}>
+    <Suspense
+      fallback={
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Carregando...
+        </p>
+      }
+    >
       <ProjectAdminContent />
     </Suspense>
   );

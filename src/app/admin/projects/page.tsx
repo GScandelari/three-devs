@@ -76,10 +76,12 @@ export default function AdminProjectsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Projetos</h1>
-          <p className="mt-1 text-slate-600">
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+            Projetos
+          </h1>
+          <p className="mt-1 text-slate-600 dark:text-slate-400">
             Gerencie projetos, status, links e notas.
           </p>
         </div>
@@ -91,19 +93,21 @@ export default function AdminProjectsPage() {
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="mt-6 rounded-xl border border-slate-200 bg-white p-6"
+          className="mt-6 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
         >
-          <h2 className="font-medium text-slate-900">Criar projeto</h2>
+          <h2 className="font-medium text-slate-900 dark:text-slate-100">
+            Criar projeto
+          </h2>
           <div className="mt-4 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Cliente
               </label>
               <select
                 required
                 value={form.clientId}
                 onChange={(e) => setForm({ ...form, clientId: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400"
               >
                 <option value="">Selecione...</option>
                 {clients.map((c) => (
@@ -114,18 +118,18 @@ export default function AdminProjectsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Nome do projeto
               </label>
               <input
                 required
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-400"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Descrição
               </label>
               <textarea
@@ -135,11 +139,15 @@ export default function AdminProjectsPage() {
                 onChange={(e) =>
                   setForm({ ...form, description: e.target.value })
                 }
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-indigo-400"
               />
             </div>
           </div>
-          {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+          {error && (
+            <p className="mt-3 text-sm text-red-600 dark:text-red-400">
+              {error}
+            </p>
+          )}
           <Button type="submit" disabled={saving} className="mt-4">
             {saving ? "Criando..." : "Criar projeto"}
           </Button>
@@ -147,15 +155,17 @@ export default function AdminProjectsPage() {
       )}
 
       {loading ? (
-        <p className="mt-8 text-sm text-slate-500">Carregando...</p>
+        <p className="mt-8 text-sm text-slate-500 dark:text-slate-400">
+          Carregando...
+        </p>
       ) : projects.length === 0 ? (
-        <div className="mt-8 rounded-xl border border-dashed border-slate-200 bg-white p-12 text-center text-sm text-slate-500">
+        <div className="mt-8 rounded-xl border border-dashed border-slate-200 bg-white p-12 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
           Nenhum projeto cadastrado.
         </div>
       ) : (
-        <div className="mt-8 overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
           <table className="w-full text-sm">
-            <thead className="border-b border-slate-100 bg-slate-50 text-left text-slate-500">
+            <thead className="border-b border-slate-100 bg-slate-50 text-left text-slate-500 dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-400">
               <tr>
                 <th className="px-4 py-3 font-medium">Projeto</th>
                 <th className="px-4 py-3 font-medium">Status</th>
@@ -167,9 +177,9 @@ export default function AdminProjectsPage() {
               {projects.map((project) => (
                 <tr
                   key={project.id}
-                  className="border-b border-slate-50 last:border-0"
+                  className="border-b border-slate-50 last:border-0 dark:border-slate-800/60"
                 >
-                  <td className="px-4 py-3 font-medium text-slate-900">
+                  <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">
                     {project.name}
                   </td>
                   <td className="px-4 py-3">
@@ -179,13 +189,13 @@ export default function AdminProjectsPage() {
                       {projectStatusLabels[project.status]}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-slate-600">
+                  <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
                     {project.leadDeveloperName}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Link
                       href={`/admin/project?id=${project.id}`}
-                      className="text-indigo-600 hover:text-indigo-500"
+                      className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
                     >
                       Gerenciar →
                     </Link>

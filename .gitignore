@@ -57,3 +57,4 @@ serviceAccountKey.json
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+firebase-debug.log

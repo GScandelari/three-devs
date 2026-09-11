@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Themes are opt-in: home, login and admin wrap their content in ThemeProvider.
+ * The client portal remains outside the theme scope. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
   --background: #ffffff;
   --foreground: #0f172a;
@@ -16,4 +20,13 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Native controls follow the selected theme only inside themed pages. */
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
 }

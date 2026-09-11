@@ -34,8 +34,10 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <p className="text-sm text-slate-500">Carregando...</p>
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Carregando...
+        </p>
       </div>
     );
   }

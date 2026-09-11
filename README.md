@@ -45,6 +45,16 @@ npm run dev
 
 ## Deploy
 
+A CLI do Firebase está nas dependências de desenvolvimento do projeto.
+Execute `npm install` após clonar ou atualizar o repositório. Os scripts abaixo
+usam a instalação local, sem depender do PATH global do Windows.
+
+Antes da primeira publicação, autentique-se:
+
+```bash
+npm run firebase -- login
+```
+
 ```bash
 npm run deploy              # build + hosting + firestore rules
 npm run deploy:hosting      # apenas hosting

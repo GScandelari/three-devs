@@ -109,10 +109,12 @@ export default function AdminContractsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Contratos</h1>
-          <p className="mt-1 text-slate-600">
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+            Contratos
+          </h1>
+          <p className="mt-1 text-slate-600 dark:text-slate-400">
             Preencha o template, envie ao cliente e controle a assinatura. Sem
             contrato assinado, o portal permanece bloqueado.
           </p>
@@ -125,15 +127,17 @@ export default function AdminContractsPage() {
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="mt-6 rounded-xl border border-slate-200 bg-white p-6"
+          className="mt-6 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
         >
-          <h2 className="font-medium text-slate-900">Criar contrato</h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <h2 className="font-medium text-slate-900 dark:text-slate-100">
+            Criar contrato
+          </h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Após criar, você será direcionado para preencher o template completo.
           </p>
           <div className="mt-4 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Cliente
               </label>
               <select
@@ -142,7 +146,7 @@ export default function AdminContractsPage() {
                 onChange={(e) =>
                   setForm({ ...form, clientId: e.target.value, projectId: "" })
                 }
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400"
               >
                 <option value="">Selecione...</option>
                 {clients.map((c) => (
@@ -153,14 +157,14 @@ export default function AdminContractsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Projeto
               </label>
               <select
                 required
                 value={form.projectId}
                 onChange={(e) => setForm({ ...form, projectId: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400"
               >
                 <option value="">Selecione...</option>
                 {clientProjects.map((p) => (
@@ -171,7 +175,11 @@ export default function AdminContractsPage() {
               </select>
             </div>
           </div>
-          {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+          {error && (
+            <p className="mt-3 text-sm text-red-600 dark:text-red-400">
+              {error}
+            </p>
+          )}
           <Button type="submit" disabled={saving} className="mt-4">
             {saving ? "Criando..." : "Criar e preencher template"}
           </Button>
@@ -179,15 +187,17 @@ export default function AdminContractsPage() {
       )}
 
       {loading ? (
-        <p className="mt-8 text-sm text-slate-500">Carregando...</p>
+        <p className="mt-8 text-sm text-slate-500 dark:text-slate-400">
+          Carregando...
+        </p>
       ) : contracts.length === 0 ? (
-        <div className="mt-8 rounded-xl border border-dashed border-slate-200 bg-white p-12 text-center text-sm text-slate-500">
+        <div className="mt-8 rounded-xl border border-dashed border-slate-200 bg-white p-12 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
           Nenhum contrato cadastrado.
         </div>
       ) : (
-        <div className="mt-8 overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
           <table className="w-full text-sm">
-            <thead className="border-b border-slate-100 bg-slate-50 text-left text-slate-500">
+            <thead className="border-b border-slate-100 bg-slate-50 text-left text-slate-500 dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-400">
               <tr>
                 <th className="px-4 py-3 font-medium">Contrato</th>
                 <th className="px-4 py-3 font-medium">Cliente</th>
@@ -200,15 +210,15 @@ export default function AdminContractsPage() {
               {contracts.map((contract) => (
                 <tr
                   key={contract.id}
-                  className="border-b border-slate-50 last:border-0"
+                  className="border-b border-slate-50 last:border-0 dark:border-slate-800/60"
                 >
-                  <td className="px-4 py-3 font-medium text-slate-900">
+                  <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">
                     {contract.title}
                   </td>
-                  <td className="px-4 py-3 text-slate-600">
+                  <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
                     {clientMap[contract.clientId] ?? "—"}
                   </td>
-                  <td className="px-4 py-3 text-slate-600">
+                  <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
                     {projectMap[contract.projectId] ?? "—"}
                   </td>
                   <td className="px-4 py-3">
@@ -222,7 +232,7 @@ export default function AdminContractsPage() {
                     <div className="flex flex-wrap gap-2">
                       <Link
                         href={`/admin/contract?id=${contract.id}`}
-                        className="rounded-md px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50"
+                        className="rounded-md px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 dark:text-indigo-300 dark:hover:bg-indigo-500/15"
                       >
                         Preencher / ver
                       </Link>
@@ -281,8 +291,8 @@ function ActionBtn({
       onClick={onClick}
       className={`rounded-md px-2 py-1 text-xs font-medium transition-colors ${
         variant === "danger"
-          ? "text-red-600 hover:bg-red-50"
-          : "text-indigo-600 hover:bg-indigo-50"
+          ? "text-red-600 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-500/15"
+          : "text-indigo-600 hover:bg-indigo-50 dark:text-indigo-300 dark:hover:bg-indigo-500/15"
       }`}
     >
       {children}

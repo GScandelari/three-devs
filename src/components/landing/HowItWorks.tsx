@@ -27,27 +27,27 @@ const steps = [
 
 export function HowItWorks() {
   return (
-    <section id="como-funciona" className="bg-slate-50 py-24">
+    <section id="como-funciona" className="bg-slate-50 dark:bg-slate-950 py-24">
       <div className="mx-auto max-w-6xl px-6">
         <div className="mb-16 max-w-2xl">
-          <h2 className="text-3xl font-semibold tracking-tight text-slate-900">
+          <h2 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
             Como funciona
           </h2>
-          <p className="mt-4 text-slate-600">
+          <p className="mt-4 text-slate-600 dark:text-slate-300">
             Um fluxo claro do primeiro contato até a entrega do projeto.
           </p>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map((item) => (
-            <div key={item.step} className="rounded-2xl bg-white p-6 shadow-sm">
-              <span className="text-sm font-semibold text-indigo-600">
+            <div key={item.step} className="rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-sm">
+              <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
                 {item.step}
               </span>
-              <h3 className="mt-3 text-lg font-semibold text-slate-900">
+              <h3 className="mt-3 text-lg font-semibold text-slate-900 dark:text-slate-100">
                 {item.title}
               </h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                 {item.description}
               </p>
             </div>

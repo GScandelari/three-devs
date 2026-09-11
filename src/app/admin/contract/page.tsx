@@ -76,9 +76,9 @@ function ContractEditorContent() {
 
   if (!contractId) {
     return (
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-slate-500 dark:text-slate-400">
         Contrato não informado.{" "}
-        <Link href="/admin/contracts" className="text-indigo-600">
+        <Link href="/admin/contracts" className="text-indigo-600 dark:text-indigo-400">
           Voltar
         </Link>
       </p>
@@ -86,14 +86,14 @@ function ContractEditorContent() {
   }
 
   if (loading) {
-    return <p className="text-sm text-slate-500">Carregando contrato...</p>;
+    return <p className="text-sm text-slate-500 dark:text-slate-400">Carregando contrato...</p>;
   }
 
   if (!contract) {
     return (
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-slate-500 dark:text-slate-400">
         Contrato não encontrado.{" "}
-        <Link href="/admin/contracts" className="text-indigo-600">
+        <Link href="/admin/contracts" className="text-indigo-600 dark:text-indigo-400">
           Voltar
         </Link>
       </p>
@@ -128,17 +128,17 @@ function ContractEditorContent() {
     <div>
       <Link
         href="/admin/contracts"
-        className="text-sm text-slate-500 hover:text-slate-900"
+        className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
       >
         ← Voltar aos contratos
       </Link>
 
       <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
             {contract.title}
           </h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
             {clientName ?? "Cliente"} · {projectName ?? "Projeto"}
           </p>
         </div>
@@ -173,7 +173,7 @@ function ContractEditorContent() {
         </Button>
       </div>
 
-      <div className="mt-8 flex gap-2 border-b border-slate-200">
+      <div className="mt-8 flex gap-2 border-b border-slate-200 dark:border-slate-800">
         <TabButton active={tab === "form"} onClick={() => setTab("form")}>
           Preencher template
         </TabButton>
@@ -185,15 +185,15 @@ function ContractEditorContent() {
       {tab === "form" ? (
         <form
           onSubmit={handleSave}
-          className="mt-6 rounded-xl border border-slate-200 bg-white p-6"
+          className="mt-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6"
         >
-          <p className="mb-6 text-sm text-slate-600">
+          <p className="mb-6 text-sm text-slate-600 dark:text-slate-400">
             Preencha as informações do contrato. O documento é gerado
             automaticamente a partir deste template em português.
           </p>
           <ContractTemplateForm value={template} onChange={setTemplate} />
-          {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-          {success && <p className="mt-4 text-sm text-emerald-600">{success}</p>}
+          {error && <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
+          {success && <p className="mt-4 text-sm text-emerald-600 dark:text-emerald-400">{success}</p>}
           <Button type="submit" disabled={saving} className="mt-6">
             {saving ? "Salvando..." : "Salvar template"}
           </Button>
@@ -222,8 +222,8 @@ function TabButton({
       onClick={onClick}
       className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
         active
-          ? "border-indigo-600 text-indigo-700"
-          : "border-transparent text-slate-500 hover:text-slate-800"
+          ? "border-indigo-600 dark:border-indigo-400 text-indigo-700 dark:text-indigo-300"
+          : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
       }`}
     >
       {children}
@@ -233,7 +233,7 @@ function TabButton({
 
 export default function AdminContractPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-slate-500">Carregando...</p>}>
+    <Suspense fallback={<p className="text-sm text-slate-500 dark:text-slate-400">Carregando...</p>}>
       <ContractEditorContent />
     </Suspense>
   );
