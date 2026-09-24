@@ -4,9 +4,6 @@ Este guia explica como configurar a chave `RESEND_API_KEY`, autenticar o
 domínio remetente e publicar as Cloud Functions responsáveis por gerar e enviar
 os contratos em PDF.
 
-> O nome correto da variável é `RESEND_API_KEY`, com a letra **D** em
-> `RESEND`. Não use `RESEN_API_KEY`.
-
 ## Visão geral
 
 O envio funciona da seguinte forma:
@@ -33,9 +30,6 @@ Antes de começar, confirme que você tem:
 
 Todos os comandos deste guia devem ser executados na raiz do repositório:
 
-```powershell
-cd C:\Users\giova\three-devs
-```
 
 ## 1. Criar ou acessar a conta da Resend
 
