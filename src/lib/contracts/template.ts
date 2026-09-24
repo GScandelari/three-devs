@@ -37,8 +37,17 @@ export function buildContractTitle(data: ContractTemplateData): string {
 }
 
 export function renderContractHtml(data: ContractTemplateData): string {
-  const v = (value: string, fallback = "________") =>
-    value.trim() ? value.trim() : fallback;
+  const escapeHtml = (input: string) =>
+    input
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  const v = (value: string, fallback = "________") => {
+    const normalized = value.trim() || fallback;
+    return escapeHtml(normalized);
+  };
 
   return `
 <p class="intro">Nada avança sem o contrato assinado. Este documento protege a Three Devs e o cliente.</p>

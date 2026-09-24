@@ -4,6 +4,10 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
+  generateContractPdf,
+  sendContractEmail,
+} from "@/lib/firebase/admin-api";
+import {
   getAllClients,
   getAllProjects,
   getContractById,
@@ -39,6 +43,8 @@ function ContractEditorContent() {
   );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [tab, setTab] = useState<"form" | "preview">("form");
@@ -119,9 +125,59 @@ function ContractEditorContent() {
   }
 
   async function handleStatus(status: ContractStatus) {
-    await updateContractStatus(contractId!, status);
+    setError("");
+    setSuccess("");
+    try {
+      await updateContractStatus(contractId!, status);
+      const refreshed = await getContractById(contractId!);
+      setContract(refreshed);
+    } catch (caught) {
+      setError(getErrorMessage(caught, "Não foi possível atualizar o contrato."));
+    }
+  }
+
+  async function saveCurrentTemplate() {
+    await updateContractTemplate(contractId!, template);
+  }
+
+  async function refreshContract() {
     const refreshed = await getContractById(contractId!);
     setContract(refreshed);
+  }
+
+  async function handleGeneratePdf() {
+    setError("");
+    setSuccess("");
+    setGenerating(true);
+
+    try {
+      await saveCurrentTemplate();
+      const { filename, pdfBase64 } = await generateContractPdf(contractId!);
+      downloadBase64Pdf(pdfBase64, filename);
+      await refreshContract();
+      setSuccess("PDF gerado e baixado com sucesso.");
+    } catch (caught) {
+      setError(getErrorMessage(caught, "Não foi possível gerar o PDF."));
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  async function handleSendEmail() {
+    setError("");
+    setSuccess("");
+    setSending(true);
+
+    try {
+      await saveCurrentTemplate();
+      const result = await sendContractEmail(contractId!);
+      await refreshContract();
+      setSuccess(`Contrato enviado para ${result.sentTo}.`);
+    } catch (caught) {
+      setError(getErrorMessage(caught, "Não foi possível enviar o contrato."));
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
@@ -150,15 +206,27 @@ function ContractEditorContent() {
       </div>
 
       <div className="mt-6 flex flex-wrap gap-2">
-        {contract.status === "draft" && (
-          <Button type="button" onClick={() => handleStatus("sent")}>
-            Marcar como enviado
+        <Button
+          type="button"
+          onClick={handleGeneratePdf}
+          disabled={generating || sending || saving}
+        >
+          {generating ? "Gerando PDF..." : "Baixar PDF"}
+        </Button>
+        {contract.status !== "cancelled" && (
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={handleSendEmail}
+            disabled={sending || generating || saving}
+          >
+            {sending ? "Enviando..." : "Enviar por e-mail"}
           </Button>
         )}
         {(contract.status === "draft" || contract.status === "sent") && (
           <Button
             type="button"
-            variant="secondary"
+            variant="ghost"
             onClick={() => handleStatus("signed")}
           >
             Marcar assinado
@@ -172,6 +240,30 @@ function ContractEditorContent() {
           Lista de contratos
         </Button>
       </div>
+
+      {contract.lastEmailSentAt && (
+        <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
+          Último envio para {contract.sentTo ?? template.clientEmail} em{" "}
+          {new Intl.DateTimeFormat("pt-BR", {
+            dateStyle: "short",
+            timeStyle: "short",
+          }).format(new Date(contract.lastEmailSentAt))}
+          .
+        </p>
+      )}
+
+      {(error || success) && (
+        <div
+          role="status"
+          className={`mt-4 rounded-lg border px-4 py-3 text-sm ${
+            error
+              ? "border-red-200 bg-red-50 text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300"
+              : "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300"
+          }`}
+        >
+          {error || success}
+        </div>
+      )}
 
       <div className="mt-8 flex gap-2 border-b border-slate-200 dark:border-slate-800">
         <TabButton active={tab === "form"} onClick={() => setTab("form")}>
@@ -192,8 +284,6 @@ function ContractEditorContent() {
             automaticamente a partir deste template em português.
           </p>
           <ContractTemplateForm value={template} onChange={setTemplate} />
-          {error && <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
-          {success && <p className="mt-4 text-sm text-emerald-600 dark:text-emerald-400">{success}</p>}
           <Button type="submit" disabled={saving} className="mt-6">
             {saving ? "Salvando..." : "Salvar template"}
           </Button>
@@ -205,6 +295,28 @@ function ContractEditorContent() {
       )}
     </div>
   );
+}
+
+function downloadBase64Pdf(pdfBase64: string, filename: string) {
+  const binary = window.atob(pdfBase64);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+
+  const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function getErrorMessage(caught: unknown, fallback: string) {
+  if (!(caught instanceof Error) || !caught.message) return fallback;
+  return caught.message.replace(/^Firebase:\s*/i, "").replace(/\s*\([^)]*\)\.?$/, "");
 }
 
 function TabButton({

@@ -55,7 +55,11 @@ export interface Contract {
   title: string;
   template?: ContractTemplateData;
   documentUrl?: string;
+  documentFileName?: string;
   sentAt?: string;
+  lastEmailSentAt?: string;
+  sentTo?: string;
+  emailMessageId?: string;
   signedAt?: string;
   createdAt: string;
   updatedAt?: string;
