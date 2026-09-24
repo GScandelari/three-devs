@@ -4,6 +4,10 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
+  generateContractPdf,
+  sendContractEmail,
+} from "@/lib/firebase/admin-api";
+import {
   getAllClients,
   getAllProjects,
   getContractById,
@@ -39,6 +43,8 @@ function ContractEditorContent() {
   );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [statusError, setStatusError] = useState("");
@@ -120,23 +126,71 @@ function ContractEditorContent() {
   }
 
   async function handleStatus(status: ContractStatus) {
+    setError("");
+    setSuccess("");
     setStatusError("");
 
     try {
       await updateContractStatus(contractId!, status);
-    } catch (err) {
-      console.error("Erro ao atualizar status do contrato:", err);
-      setStatusError("Não foi possível atualizar o status do contrato.");
+    } catch (caught) {
+      console.error("Erro ao atualizar status do contrato:", caught);
+      setStatusError(
+        getErrorMessage(caught, "Não foi possível atualizar o status do contrato."),
+      );
       return;
     }
 
     try {
       setContract(await getContractById(contractId!));
-    } catch (err) {
-      console.error("Erro ao recarregar contrato:", err);
+    } catch (caught) {
+      console.error("Erro ao recarregar contrato:", caught);
       setStatusError(
         "O status foi atualizado, mas não foi possível recarregar o contrato. Atualize a página.",
       );
+    }
+  }
+
+  async function saveCurrentTemplate() {
+    await updateContractTemplate(contractId!, template);
+  }
+
+  async function refreshContract() {
+    const refreshed = await getContractById(contractId!);
+    setContract(refreshed);
+  }
+
+  async function handleGeneratePdf() {
+    setError("");
+    setSuccess("");
+    setGenerating(true);
+
+    try {
+      await saveCurrentTemplate();
+      const { filename, pdfBase64 } = await generateContractPdf(contractId!);
+      downloadBase64Pdf(pdfBase64, filename);
+      await refreshContract();
+      setSuccess("PDF gerado e baixado com sucesso.");
+    } catch (caught) {
+      setError(getErrorMessage(caught, "Não foi possível gerar o PDF."));
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  async function handleSendEmail() {
+    setError("");
+    setSuccess("");
+    setSending(true);
+
+    try {
+      await saveCurrentTemplate();
+      const result = await sendContractEmail(contractId!);
+      await refreshContract();
+      setSuccess(`Contrato enviado para ${result.sentTo}.`);
+    } catch (caught) {
+      setError(getErrorMessage(caught, "Não foi possível enviar o contrato."));
+    } finally {
+      setSending(false);
     }
   }
 
@@ -166,15 +220,27 @@ function ContractEditorContent() {
       </div>
 
       <div className="mt-6 flex flex-wrap gap-2">
-        {contract.status === "draft" && (
-          <Button type="button" onClick={() => handleStatus("sent")}>
-            Marcar como enviado
+        <Button
+          type="button"
+          onClick={handleGeneratePdf}
+          disabled={generating || sending || saving}
+        >
+          {generating ? "Gerando PDF..." : "Baixar PDF"}
+        </Button>
+        {contract.status !== "cancelled" && (
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={handleSendEmail}
+            disabled={sending || generating || saving}
+          >
+            {sending ? "Enviando..." : "Enviar por e-mail"}
           </Button>
         )}
         {(contract.status === "draft" || contract.status === "sent") && (
           <Button
             type="button"
-            variant="secondary"
+            variant="ghost"
             onClick={() => handleStatus("signed")}
           >
             Marcar assinado
@@ -188,6 +254,30 @@ function ContractEditorContent() {
           Lista de contratos
         </Button>
       </div>
+
+      {contract.lastEmailSentAt && (
+        <p className="mt-3 text-sm text-slate-500">
+          Último envio para {contract.sentTo ?? template.clientEmail} em{" "}
+          {new Intl.DateTimeFormat("pt-BR", {
+            dateStyle: "short",
+            timeStyle: "short",
+          }).format(new Date(contract.lastEmailSentAt))}
+          .
+        </p>
+      )}
+
+      {(error || success) && (
+        <div
+          role="status"
+          className={`mt-4 rounded-lg border px-4 py-3 text-sm ${
+            error
+              ? "border-red-200 bg-red-50 text-red-700"
+              : "border-emerald-200 bg-emerald-50 text-emerald-700"
+          }`}
+        >
+          {error || success}
+        </div>
+      )}
 
       {statusError && (
         <p role="alert" className="mt-3 text-sm text-red-600">
@@ -214,8 +304,6 @@ function ContractEditorContent() {
             automaticamente a partir deste template em português.
           </p>
           <ContractTemplateForm value={template} onChange={setTemplate} />
-          {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-          {success && <p className="mt-4 text-sm text-emerald-600">{success}</p>}
           <Button type="submit" disabled={saving} className="mt-6">
             {saving ? "Salvando..." : "Salvar template"}
           </Button>
@@ -227,6 +315,28 @@ function ContractEditorContent() {
       )}
     </div>
   );
+}
+
+function downloadBase64Pdf(pdfBase64: string, filename: string) {
+  const binary = window.atob(pdfBase64);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+
+  const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function getErrorMessage(caught: unknown, fallback: string) {
+  if (!(caught instanceof Error) || !caught.message) return fallback;
+  return caught.message.replace(/^Firebase:\s*/i, "").replace(/\s*\([^)]*\)\.?$/, "");
 }
 
 function TabButton({
