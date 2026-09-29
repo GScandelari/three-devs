@@ -4,7 +4,7 @@ Startup de desenvolvimento de software — landing page, portal do cliente e pai
 
 **Repositório:** [github.com/GScandelari/three-devs](https://github.com/GScandelari/three-devs)
 
-**Site:** https://three-devs.web.app
+**Site:** https://serifalabs.com (endereço Firebase secundário: https://three-devs.web.app)
 
 ## Stack
 
@@ -79,7 +79,7 @@ Secrets necessários em **Settings → Secrets**:
 - [ ] Geração de contrato (PDF + e-mail)
 - [ ] Assinatura digital (DocuSign, Clicksign)
 - [ ] Notificações ao cliente
-- [ ] Domínio customizado
+- [x] Domínio customizado (serifalabs.com)
 
 ## Segurança
 
