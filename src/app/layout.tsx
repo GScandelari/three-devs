@@ -14,6 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://serifalabs.com"),
   title: "Three Devs — Desenvolvimento de Software",
   description:
     "Startup de desenvolvimento de software. Landing page e portal do cliente.",

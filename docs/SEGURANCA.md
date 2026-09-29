@@ -30,6 +30,8 @@ Secrets do GitHub Actions (não vão para o código):
 A API Key do Firebase **aparece no bundle JavaScript** do site — isso é esperado em apps web Firebase. Proteja no [Google Cloud Console](https://console.cloud.google.com/apis/credentials):
 
 1. **Application restrictions** → HTTP referrers:
+   - `https://serifalabs.com/*`
+   - `https://www.serifalabs.com/*`
    - `https://three-devs.web.app/*`
    - `https://three-devs.firebaseapp.com/*`
    - `http://localhost:3000/*` (dev)
