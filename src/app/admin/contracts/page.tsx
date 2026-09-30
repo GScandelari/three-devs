@@ -108,10 +108,19 @@ export default function AdminContractsPage() {
 
     try {
       await updateContractStatus(contractId, status);
-      await loadData();
     } catch (err) {
       console.error("Erro ao atualizar status do contrato:", err);
       setStatusError("Não foi possível atualizar o status do contrato.");
+      return;
+    }
+
+    try {
+      await loadData();
+    } catch (err) {
+      console.error("Erro ao recarregar contratos:", err);
+      setStatusError(
+        "O status foi atualizado, mas não foi possível recarregar a lista. Atualize a página.",
+      );
     }
   }
 

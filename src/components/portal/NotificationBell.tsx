@@ -135,7 +135,9 @@ export function NotificationBell() {
   }
 
   return (
-    <div ref={containerRef} className="relative">
+    // Sem "relative" aqui de propósito: o painel usa como referência o grupo da
+    // direita do PortalHeader. Alinhado ao sininho, ele sairia da tela no celular.
+    <div ref={containerRef}>
       <button
         type="button"
         onClick={handleToggle}
@@ -166,7 +168,7 @@ export function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 z-10 mt-2 w-80 max-w-[calc(100vw-3rem)] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+        <div className="absolute right-0 top-full z-10 mt-2 w-80 max-w-[calc(100vw-3rem)] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
           <h2 className="border-b border-slate-100 px-4 py-3 text-sm font-medium uppercase tracking-wider text-slate-400">
             Avisos
           </h2>

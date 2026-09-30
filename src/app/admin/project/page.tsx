@@ -31,7 +31,10 @@ function ProjectAdminContent() {
   const [notifyStatus, setNotifyStatus] = useState(true);
   const [notifyNote, setNotifyNote] = useState(true);
   const [notifyLink, setNotifyLink] = useState(true);
-  const [error, setError] = useState("");
+  // Um erro por seção, exibido junto do formulário que falhou.
+  const [statusError, setStatusError] = useState("");
+  const [noteError, setNoteError] = useState("");
+  const [linkError, setLinkError] = useState("");
 
   useEffect(() => {
     if (!projectId) return;
@@ -62,13 +65,15 @@ function ProjectAdminContent() {
 
   const currentProject = project;
 
-  async function reload() {
+  // Chamado só depois de uma gravação bem-sucedida: se falhar, a mensagem deixa
+  // claro que a alteração foi salva.
+  async function reload(showError: (message: string) => void) {
     if (!projectId) return;
     try {
       setProject(await getProjectById(projectId));
     } catch (err) {
       console.error("Erro ao recarregar projeto:", err);
-      setError(
+      showError(
         "A alteração foi salva, mas não foi possível recarregar o projeto. Atualize a página.",
       );
     }
@@ -76,26 +81,28 @@ function ProjectAdminContent() {
 
   async function handleStatusChange(status: ProjectStatus) {
     if (saving || status === currentProject.status) return;
-    setError("");
+    setStatusError("");
     setSaving(true);
 
     try {
       await updateProjectStatus(currentProject.id, status, {
         notifyClient: notifyStatus,
       });
-      await reload();
     } catch (err) {
       console.error("Erro ao alterar status do projeto:", err);
-      setError("Não foi possível alterar o status. Nada foi salvo.");
-    } finally {
+      setStatusError("Não foi possível alterar o status. Nada foi salvo.");
       setSaving(false);
+      return;
     }
+
+    await reload(setStatusError);
+    setSaving(false);
   }
 
   async function handleAddNote(e: React.FormEvent) {
     e.preventDefault();
     if (saving || !developer || !note.trim()) return;
-    setError("");
+    setNoteError("");
     setSaving(true);
 
     try {
@@ -109,22 +116,24 @@ function ProjectAdminContent() {
         },
         { notifyClient: notifyNote },
       );
-      setNote("");
-      setImportant(false);
-      setNotifyNote(true);
-      await reload();
     } catch (err) {
       console.error("Erro ao publicar nota:", err);
-      setError("Não foi possível publicar a nota. Nada foi salvo.");
-    } finally {
+      setNoteError("Não foi possível publicar a nota. Nada foi salvo.");
       setSaving(false);
+      return;
     }
+
+    setNote("");
+    setImportant(false);
+    setNotifyNote(true);
+    await reload(setNoteError);
+    setSaving(false);
   }
 
   async function handleAddLink(e: React.FormEvent) {
     e.preventDefault();
     if (saving || !linkLabel.trim() || !linkUrl.trim()) return;
-    setError("");
+    setLinkError("");
     setSaving(true);
 
     try {
@@ -136,16 +145,18 @@ function ProjectAdminContent() {
         },
         { notifyClient: notifyLink },
       );
-      setLinkLabel("");
-      setLinkUrl("");
-      setNotifyLink(true);
-      await reload();
     } catch (err) {
       console.error("Erro ao adicionar link:", err);
-      setError("Não foi possível adicionar o link. Nada foi salvo.");
-    } finally {
+      setLinkError("Não foi possível adicionar o link. Nada foi salvo.");
       setSaving(false);
+      return;
     }
+
+    setLinkLabel("");
+    setLinkUrl("");
+    setNotifyLink(true);
+    await reload(setLinkError);
+    setSaving(false);
   }
 
   return (
@@ -170,12 +181,6 @@ function ProjectAdminContent() {
           {projectStatusLabels[project.status]}
         </span>
       </div>
-
-      {error && (
-        <p role="alert" className="mt-4 text-sm text-red-600">
-          {error}
-        </p>
-      )}
 
       <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6">
         <h2 className="text-sm font-medium uppercase tracking-wider text-slate-400">
@@ -209,6 +214,11 @@ function ProjectAdminContent() {
           />
           Avisar o cliente
         </label>
+        {statusError && (
+          <p role="alert" className="mt-3 text-sm text-red-600">
+            {statusError}
+          </p>
+        )}
       </section>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
@@ -238,6 +248,11 @@ function ProjectAdminContent() {
               />
               Avisar o cliente
             </label>
+            {noteError && (
+              <p role="alert" className="text-sm text-red-600">
+                {noteError}
+              </p>
+            )}
             <Button type="submit" disabled={saving || !note.trim()}>
               Publicar nota
             </Button>
@@ -292,6 +307,11 @@ function ProjectAdminContent() {
               />
               Avisar o cliente
             </label>
+            {linkError && (
+              <p role="alert" className="text-sm text-red-600">
+                {linkError}
+              </p>
+            )}
             <Button type="submit" disabled={saving}>
               Adicionar link
             </Button>

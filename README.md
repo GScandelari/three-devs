@@ -51,11 +51,26 @@ npm run deploy:hosting      # apenas hosting
 npm run deploy:firestore    # apenas regras e índices do Firestore
 ```
 
+A CLI do Firebase (`firebase-tools`) está nas dependências de desenvolvimento, então
+os scripts acima funcionam após `npm install`, sem instalação global. Na primeira
+vez, autentique-se com `npx firebase login`.
+
 > O deploy automático (GitHub Actions) publica **apenas o hosting**. Mudanças em
 > `firestore.rules` precisam de `npm run deploy:firestore`. Os avisos ao cliente
 > dependem das regras da coleção `notifications`: publique as regras **antes**
-> do site, senão o sininho do portal não carrega e salvar no admin com
-> "Avisar o cliente" marcado falha.
+> do merge na `main`. Sem elas, o sininho do portal não carrega, "Marcar
+> assinado" falha sempre e salvar no admin com "Avisar o cliente" marcado falha.
+
+## Testes das regras do Firestore
+
+```bash
+npm run test:rules
+```
+
+Roda `tests/firestore.rules.test.mjs` contra o emulador local do Firestore, com
+um projeto `demo-*` que só existe no emulador (nenhum dado real é usado). Requer
+**Java 21 ou superior** instalado. O workflow `Testar regras do Firestore` roda os
+mesmos testes em todo pull request e em push na `main`.
 
 ## Adicionar desenvolvedores
 

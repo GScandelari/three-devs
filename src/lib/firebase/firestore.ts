@@ -54,6 +54,13 @@ function queueNotification(
     ({ projectId: string } | { contractId: string }),
   createdAt: string,
 ) {
+  // Registro sem cliente vinculado (ex.: criado à mão no console): a alteração
+  // é gravada normalmente, só não há a quem avisar.
+  if (!notification.clientId) {
+    console.warn("Aviso não gerado: registro sem clientId.", notification);
+    return;
+  }
+
   tx.set(doc(db, "notifications", crypto.randomUUID()), {
     ...notification,
     title: notification.title.slice(0, NOTIFICATION_TITLE_MAX),
@@ -272,18 +279,25 @@ export async function updateContractStatus(
   const db = dbOrThrow();
   const now = new Date().toISOString();
   const contractRef = doc(db, "contracts", contractId);
-  const updates: Record<string, string> = { status };
-
-  if (status === "sent") updates.sentAt = now;
-  if (status === "signed") {
-    updates.sentAt = updates.sentAt ?? now;
-    updates.signedAt = now;
-  }
 
   await runTransaction(db, async (tx) => {
     const snap = await tx.get(contractRef);
     if (!snap.exists()) throw new Error("Contrato não encontrado");
     const contract = mapDoc<Contract>(snap);
+
+    const updates: Record<string, string> = { status };
+    // sentAt é a data do primeiro envio: preenchida ao enviar (ou ao assinar um
+    // contrato que nunca foi enviado) e nunca sobrescrita depois.
+    if ((status === "sent" || status === "signed") && !contract.sentAt) {
+      updates.sentAt = now;
+    }
+    // signedAt é a data da assinatura: regravar "signed" não a altera.
+    if (
+      status === "signed" &&
+      (contract.status !== "signed" || !contract.signedAt)
+    ) {
+      updates.signedAt = now;
+    }
 
     tx.update(contractRef, updates);
 

@@ -23,7 +23,8 @@ export function PortalHeader() {
           <span className="ml-2 text-sm font-normal text-slate-400">Portal</span>
         </Link>
 
-        <div className="flex items-center gap-4">
+        {/* relative: o painel do NotificationBell se alinha à borda direita deste grupo. */}
+        <div className="relative flex items-center gap-4">
           <NotificationBell />
           {client?.name && (
             <span className="hidden text-sm text-slate-600 sm:block">

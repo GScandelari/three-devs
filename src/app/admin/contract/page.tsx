@@ -124,11 +124,19 @@ function ContractEditorContent() {
 
     try {
       await updateContractStatus(contractId!, status);
-      const refreshed = await getContractById(contractId!);
-      setContract(refreshed);
     } catch (err) {
       console.error("Erro ao atualizar status do contrato:", err);
       setStatusError("Não foi possível atualizar o status do contrato.");
+      return;
+    }
+
+    try {
+      setContract(await getContractById(contractId!));
+    } catch (err) {
+      console.error("Erro ao recarregar contrato:", err);
+      setStatusError(
+        "O status foi atualizado, mas não foi possível recarregar o contrato. Atualize a página.",
+      );
     }
   }
 
