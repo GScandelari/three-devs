@@ -9,6 +9,7 @@ import {
   initializeTestEnvironment,
 } from "@firebase/rules-unit-testing";
 import {
+  Timestamp,
   collection,
   deleteDoc,
   doc,
@@ -22,12 +23,17 @@ import {
 } from "firebase/firestore";
 
 const NOW = "2026-09-30T12:00:00.000Z";
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 let env;
 let dev;
 let clientA;
 let clientB;
 let anon;
+
+function inDays(days) {
+  return Timestamp.fromMillis(Date.now() + days * DAY_MS);
+}
 
 function validNotification(overrides = {}) {
   return {
@@ -36,7 +42,7 @@ function validNotification(overrides = {}) {
     title: "App XYZ: nova atualização",
     projectId: "p1",
     createdAt: NOW,
-    readAt: null,
+    expiresAt: inDays(3),
     ...overrides,
   };
 }
@@ -127,9 +133,9 @@ describe("criação de avisos", () => {
     );
   });
 
-  test("rejeita aviso já criado como lido", async () => {
+  test("rejeita o formato antigo com readAt", async () => {
     await assertFails(
-      setDoc(doc(dev, "notifications/x"), validNotification({ readAt: NOW })),
+      setDoc(doc(dev, "notifications/x"), validNotification({ readAt: null })),
     );
   });
 
@@ -166,12 +172,30 @@ describe("criação de avisos", () => {
     );
   });
 
-  test("rejeita aviso sem createdAt ou sem readAt", async () => {
+  test("rejeita aviso sem createdAt ou sem expiresAt", async () => {
     await assertFails(
       setDoc(doc(dev, "notifications/x"), without(validNotification(), "createdAt")),
     );
     await assertFails(
-      setDoc(doc(dev, "notifications/y"), without(validNotification(), "readAt")),
+      setDoc(doc(dev, "notifications/y"), without(validNotification(), "expiresAt")),
+    );
+  });
+
+  test("expiresAt precisa ser data futura de até 4 dias", async () => {
+    await assertFails(
+      setDoc(
+        doc(dev, "notifications/x"),
+        validNotification({ expiresAt: "2026-10-03T12:00:00.000Z" }),
+      ),
+    );
+    await assertFails(
+      setDoc(doc(dev, "notifications/x"), validNotification({ expiresAt: inDays(-1) })),
+    );
+    await assertFails(
+      setDoc(doc(dev, "notifications/x"), validNotification({ expiresAt: inDays(5) })),
+    );
+    await assertSucceeds(
+      setDoc(doc(dev, "notifications/x"), validNotification({ expiresAt: inDays(3) })),
     );
   });
 
@@ -229,44 +253,21 @@ describe("leitura de avisos", () => {
   });
 });
 
-describe("marcar como lido", () => {
-  test("cliente marca o próprio aviso como lido", async () => {
-    await assertSucceeds(
-      updateDoc(doc(clientA, "notifications/nA1"), { readAt: NOW }),
-    );
+describe("excluir aviso visualizado", () => {
+  test("cliente exclui o próprio aviso", async () => {
+    await assertSucceeds(deleteDoc(doc(clientA, "notifications/nA1")));
   });
 
-  test("cliente não altera outros campos", async () => {
-    await assertFails(
-      updateDoc(doc(clientA, "notifications/nA1"), { title: "outro" }),
-    );
-    await assertFails(
-      updateDoc(doc(clientA, "notifications/nA1"), {
-        readAt: NOW,
-        clientId: "cB",
-      }),
-    );
+  test("cliente não exclui aviso de outro cliente", async () => {
+    await assertFails(deleteDoc(doc(clientA, "notifications/nB1")));
   });
 
-  test("cliente não grava readAt que não seja texto", async () => {
-    await assertFails(
-      updateDoc(doc(clientA, "notifications/nA1"), { readAt: 123 }),
-    );
+  test("desenvolvedor e visitante não excluem avisos", async () => {
+    await assertFails(deleteDoc(doc(dev, "notifications/nA1")));
+    await assertFails(deleteDoc(doc(anon, "notifications/nA1")));
   });
 
-  test("cliente não marca aviso de outro cliente", async () => {
-    await assertFails(
-      updateDoc(doc(clientA, "notifications/nB1"), { readAt: NOW }),
-    );
-  });
-
-  test("desenvolvedor não altera aviso existente", async () => {
-    await assertFails(
-      updateDoc(doc(dev, "notifications/nA1"), { title: "outro" }),
-    );
-  });
-
-  test("marca 30 avisos como lidos de uma vez (Marcar todos como lidos)", async () => {
+  test("cliente exclui 30 avisos de uma vez (Limpar avisos)", async () => {
     await env.withSecurityRulesDisabled(async (ctx) => {
       const db = ctx.firestore();
       for (let i = 0; i < 30; i++) {
@@ -276,17 +277,24 @@ describe("marcar como lido", () => {
     await assertSucceeds(
       Promise.all(
         Array.from({ length: 30 }, (_, i) =>
-          updateDoc(doc(clientA, `notifications/bulk${i}`), { readAt: NOW }),
+          deleteDoc(doc(clientA, `notifications/bulk${i}`)),
         ),
       ),
     );
   });
 });
 
-describe("apagar avisos", () => {
-  test("ninguém apaga aviso pelo app", async () => {
-    await assertFails(deleteDoc(doc(dev, "notifications/nA1")));
-    await assertFails(deleteDoc(doc(clientA, "notifications/nA1")));
+describe("alterar aviso", () => {
+  test("ninguém altera aviso existente", async () => {
+    await assertFails(
+      updateDoc(doc(clientA, "notifications/nA1"), { title: "outro" }),
+    );
+    await assertFails(
+      updateDoc(doc(clientA, "notifications/nA1"), { expiresAt: inDays(4) }),
+    );
+    await assertFails(
+      updateDoc(doc(dev, "notifications/nA1"), { title: "outro" }),
+    );
   });
 });
 

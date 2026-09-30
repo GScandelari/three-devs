@@ -44,7 +44,7 @@ A API Key do Firebase **aparece no bundle JavaScript** do site — isso é esper
 | Alterar senha de cliente | Cloud Function `setClientPassword` (Admin SDK) — só desenvolvedores autenticados |
 | CRUD Firestore | Regras limitam escrita a desenvolvedores |
 | Portal do cliente | Bloqueado sem contrato assinado |
-| Avisos ao cliente (`notifications`) | Só desenvolvedores criam; o cliente lê apenas os próprios e só altera o campo `readAt` (marcar como lido); ninguém apaga pelo app |
+| Avisos ao cliente (`notifications`) | Só desenvolvedores criam (com validade `expiresAt` de até 4 dias); o cliente lê e exclui apenas os próprios; ninguém altera um aviso; os não visualizados são apagados pelo TTL do Firestore |
 
 ## Checklist para novos devs
 

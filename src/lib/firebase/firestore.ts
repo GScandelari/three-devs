@@ -9,6 +9,7 @@ import {
   query,
   where,
   runTransaction,
+  Timestamp,
   type Firestore,
   type Transaction,
 } from "firebase/firestore";
@@ -33,6 +34,8 @@ import { getFirebaseDb } from "./config";
 
 // firestore.rules rejeita títulos acima de 300 caracteres; cortamos antes, com folga.
 const NOTIFICATION_TITLE_MAX = 200;
+// Avisos não visualizados expiram 3 dias após a criação (TTL em expiresAt).
+const NOTIFICATION_TTL_MS = 3 * 24 * 60 * 60 * 1000;
 
 function mapDoc<T>(snap: { id: string; data: () => Record<string, unknown> }): T {
   return { id: snap.id, ...snap.data() } as T;
@@ -65,7 +68,7 @@ function queueNotification(
     ...notification,
     title: notification.title.slice(0, NOTIFICATION_TITLE_MAX),
     createdAt,
-    readAt: null,
+    expiresAt: Timestamp.fromMillis(Date.parse(createdAt) + NOTIFICATION_TTL_MS),
   });
 }
 
@@ -469,24 +472,26 @@ export async function getNotificationsByClientId(
     where("clientId", "==", clientId),
   );
   const snapshot = await getDocs(q);
-  return snapshot.docs
-    .map((d) => mapDoc<ClientNotification>(d))
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
+  const now = Date.now();
+  return (
+    snapshot.docs
+      .map((d) => mapDoc<ClientNotification>(d))
+      // O TTL do Firestore pode levar algumas horas para apagar um aviso vencido;
+      // até lá ele já não aparece no portal.
+      .filter((n) => n.expiresAt.toMillis() > now)
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      )
+  );
 }
 
-export async function markNotificationsRead(notificationIds: string[]) {
+// Aviso visualizado (clicado) é excluído. Exclusões independentes: cada uma é
+// validada sozinha pelas regras (sem o limite de leituras por batch).
+export async function deleteNotifications(notificationIds: string[]) {
   const db = dbOrThrow();
-  const now = new Date().toISOString();
-
-  // Escritas independentes: marcar como lido não precisa ser atômico, e assim
-  // cada uma é validada sozinha pelas regras (sem o limite de leituras por batch).
   await Promise.all(
-    notificationIds.map((id) =>
-      updateDoc(doc(db, "notifications", id), { readAt: now }),
-    ),
+    notificationIds.map((id) => deleteDoc(doc(db, "notifications", id))),
   );
 }
 

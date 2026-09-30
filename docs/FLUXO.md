@@ -58,8 +58,9 @@ Lead → Proposta (time) → Cliente aceita?
 ## Avisos ao cliente (portal)
 
 O cliente é avisado **dentro do portal**: um sininho no cabeçalho mostra a
-quantidade de avisos não lidos e abre a lista dos 20 mais recentes. Não há
-envio de e-mail nem de mensagens externas.
+quantidade de avisos novos e abre a lista dos 20 mais recentes. Não há envio de
+e-mail nem de mensagens externas. Os avisos são temporários: somem ao serem
+visualizados ou, se não forem, 3 dias após a criação.
 
 | Acontecimento | Onde é gerado | Quando avisa |
 |---------------|---------------|--------------|
@@ -74,10 +75,16 @@ Regras de funcionamento:
   são salvos, ou nenhum. A transação relê o documento antes de gravar, então
   clique duplo ou dois devs salvando ao mesmo tempo não geram aviso repetido.
 - Clicar no status que já está ativo não grava nem avisa.
-- Clicar num aviso leva ao projeto (ou ao contrato) e marca o aviso como lido.
-  "Marcar todos como lidos" marca todos os não lidos de uma vez.
+- **Visualizado = clicado:** clicar num aviso leva ao projeto (ou ao contrato) e
+  exclui o aviso. "Limpar avisos" exclui todos de uma vez. Só abrir o sininho
+  não exclui nada.
+- **Não visualizado = apagado após 3 dias:** cada aviso tem uma validade
+  (`expiresAt`, criação + 3 dias). A política de TTL do Firestore apaga os
+  vencidos (a exclusão pode levar algumas horas depois do vencimento); o portal
+  já esconde o aviso assim que ele vence. Veja a configuração do TTL no README.
 - A lista é recarregada ao entrar no portal, ao trocar de página e ao abrir o
   sininho (não é em tempo real).
+- Não há histórico: depois de excluído, o aviso não existe mais para ninguém.
 
 Cada aviso é um documento em `notifications/{notificationId}`:
 
@@ -88,13 +95,13 @@ Cada aviso é um documento em `notifications/{notificationId}`:
   "title": "App XYZ: status alterado para Em revisão",
   "projectId": "<projectId>",
   "createdAt": "2026-09-30T00:00:00.000Z",
-  "readAt": null
+  "expiresAt": "<Timestamp: 2026-10-03T00:00:00.000Z>"
 }
 ```
 
 `type` é um de `project_status`, `project_note`, `project_link` ou
-`contract_signed` (este usa `contractId` no lugar de `projectId`). `readAt`
-recebe a data em que o cliente leu o aviso.
+`contract_signed` (este usa `contractId` no lugar de `projectId`). `expiresAt`
+é um campo do tipo Timestamp (exigido pelo TTL do Firestore).
 
 ## Dados de exemplo (Firestore)
 

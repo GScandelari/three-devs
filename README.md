@@ -61,6 +61,22 @@ vez, autentique-se com `npx firebase login`.
 > do merge na `main`. Sem elas, o sininho do portal não carrega, "Marcar
 > assinado" falha sempre e salvar no admin com "Avisar o cliente" marcado falha.
 
+### Expiração automática dos avisos (TTL) — configurar uma vez
+
+Os avisos não visualizados são apagados 3 dias após a criação por uma política de
+TTL do Firestore no campo `expiresAt`. Sem essa política, o portal continua
+escondendo os avisos vencidos, mas eles ficam guardados no banco. Para ativar:
+
+1. Abra o [Console do Google Cloud](https://console.cloud.google.com/firestore)
+   no projeto `three-devs` → **Firestore** → **Time-to-live (TTL)**.
+2. Clique em **Create policy**.
+3. Em **Collection group**, informe `notifications`; em **Timestamp field**,
+   informe `expiresAt`.
+4. Salve e aguarde o status da política ficar como ativo.
+
+A exclusão pelo TTL costuma acontecer algumas horas depois do vencimento e conta
+como uma operação de exclusão normal do Firestore.
+
 ## Testes das regras do Firestore
 
 ```bash

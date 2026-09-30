@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import {
+  deleteNotifications,
   getNotificationsByClientId,
-  markNotificationsRead,
 } from "@/lib/firebase/firestore";
 import type { ClientNotification } from "@/lib/types";
 
@@ -34,7 +34,7 @@ export function NotificationBell() {
   const [open, setOpen] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [actionError, setActionError] = useState("");
-  const [marking, setMarking] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
 
   // Recarrega ao entrar no portal, ao trocar de página e ao abrir a lista.
@@ -83,10 +83,8 @@ export function NotificationBell() {
   // Desenvolvedores em "Ver portal" não têm registro de cliente.
   if (!clientId) return null;
 
-  const unreadIds = (notifications ?? [])
-    .filter((n) => !n.readAt)
-    .map((n) => n.id);
-  const unreadCount = unreadIds.length;
+  // Todo aviso na lista ainda não foi visualizado: ao ser clicado, é excluído.
+  const count = notifications?.length ?? 0;
   const visible = (notifications ?? []).slice(0, MAX_VISIBLE);
 
   function handleToggle() {
@@ -100,36 +98,31 @@ export function NotificationBell() {
   async function handleOpenNotification(notification: ClientNotification) {
     setOpen(false);
     router.push(notificationHref(notification));
-    if (notification.readAt) return;
-
-    const readAt = new Date().toISOString();
     setNotifications(
-      (prev) =>
-        prev?.map((n) => (n.id === notification.id ? { ...n, readAt } : n)) ??
-        prev,
+      (prev) => prev?.filter((n) => n.id !== notification.id) ?? prev,
     );
 
     try {
-      await markNotificationsRead([notification.id]);
+      await deleteNotifications([notification.id]);
     } catch (err) {
-      console.error("Erro ao marcar aviso como lido:", err);
-      // Volta ao estado real do servidor: o aviso continua como não lido.
+      console.error("Erro ao excluir aviso visualizado:", err);
+      // Volta ao estado real do servidor: o aviso continua na lista.
       setReloadKey((k) => k + 1);
     }
   }
 
-  async function handleMarkAllRead() {
-    if (marking || unreadCount === 0) return;
+  async function handleClearAll() {
+    if (clearing || count === 0) return;
     setActionError("");
-    setMarking(true);
+    setClearing(true);
 
     try {
-      await markNotificationsRead(unreadIds);
+      await deleteNotifications((notifications ?? []).map((n) => n.id));
     } catch (err) {
-      console.error("Erro ao marcar avisos como lidos:", err);
-      setActionError("Não foi possível marcar os avisos como lidos.");
+      console.error("Erro ao limpar avisos:", err);
+      setActionError("Não foi possível limpar os avisos.");
     } finally {
-      setMarking(false);
+      setClearing(false);
       setReloadKey((k) => k + 1);
     }
   }
@@ -143,9 +136,7 @@ export function NotificationBell() {
         onClick={handleToggle}
         aria-haspopup="true"
         aria-expanded={open}
-        aria-label={
-          unreadCount > 0 ? `Avisos: ${unreadCount} não lidos` : "Avisos"
-        }
+        aria-label={count > 0 ? `Avisos: ${count} novos` : "Avisos"}
         className="relative rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
       >
         <svg
@@ -160,9 +151,9 @@ export function NotificationBell() {
         >
           <path d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
         </svg>
-        {unreadCount > 0 && (
+        {count > 0 && (
           <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-indigo-600 px-1 text-[10px] font-medium text-white">
-            {unreadCount > 99 ? "99+" : unreadCount}
+            {count > 99 ? "99+" : count}
           </span>
         )}
       </button>
@@ -181,7 +172,7 @@ export function NotificationBell() {
             <p className="px-4 py-6 text-sm text-slate-500">Carregando...</p>
           ) : visible.length === 0 ? (
             <p className="px-4 py-6 text-sm text-slate-500">
-              Nenhum aviso ainda.
+              Nenhum aviso novo.
             </p>
           ) : (
             <ul className="max-h-96 overflow-y-auto">
@@ -197,22 +188,11 @@ export function NotificationBell() {
                   >
                     <span
                       aria-hidden="true"
-                      className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
-                        notification.readAt ? "bg-transparent" : "bg-indigo-600"
-                      }`}
+                      className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-indigo-600"
                     />
                     <span className="min-w-0">
-                      <span
-                        className={`block text-sm ${
-                          notification.readAt
-                            ? "text-slate-500"
-                            : "font-medium text-slate-900"
-                        }`}
-                      >
+                      <span className="block text-sm font-medium text-slate-900">
                         {notification.title}
-                        {!notification.readAt && (
-                          <span className="sr-only"> (não lido)</span>
-                        )}
                       </span>
                       <span className="mt-0.5 block text-xs text-slate-400">
                         {new Date(notification.createdAt).toLocaleDateString(
@@ -232,15 +212,15 @@ export function NotificationBell() {
             </p>
           )}
 
-          {unreadCount > 0 && !loadError && (
+          {count > 0 && !loadError && (
             <div className="border-t border-slate-100 px-4 py-2">
               <button
                 type="button"
-                onClick={handleMarkAllRead}
-                disabled={marking}
+                onClick={handleClearAll}
+                disabled={clearing}
                 className="text-sm text-indigo-600 transition-colors hover:text-indigo-500 disabled:cursor-not-allowed disabled:text-indigo-300"
               >
-                {marking ? "Marcando..." : "Marcar todos como lidos"}
+                {clearing ? "Limpando..." : "Limpar avisos"}
               </button>
             </div>
           )}
