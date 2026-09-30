@@ -80,8 +80,11 @@ Regras de funcionamento:
   não exclui nada.
 - **Não visualizado = apagado após 3 dias:** cada aviso tem uma validade
   (`expiresAt`, criação + 3 dias). A política de TTL do Firestore apaga os
-  vencidos (a exclusão pode levar algumas horas depois do vencimento); o portal
-  já esconde o aviso assim que ele vence. Veja a configuração do TTL no README.
+  vencidos (normalmente em até 24 horas depois do vencimento); o portal já
+  esconde o aviso assim que ele vence. Veja a configuração do TTL no README.
+- A validade é calculada pelo relógio do computador do dev. Um relógio errado
+  nunca impede a gravação: atrasado, o aviso só vence antes; adiantado, dura
+  mais (as regras aceitam validade de até 30 dias à frente).
 - A lista é recarregada ao entrar no portal, ao trocar de página e ao abrir o
   sininho (não é em tempo real).
 - Não há histórico: depois de excluído, o aviso não existe mais para ninguém.

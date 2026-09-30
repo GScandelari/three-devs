@@ -288,6 +288,21 @@ export async function updateContractStatus(
     if (!snap.exists()) throw new Error("Contrato não encontrado");
     const contract = mapDoc<Contract>(snap);
 
+    // Numa transação, todas as leituras vêm antes das escritas. Contrato sem
+    // cliente válido (criado à mão, cliente removido) continua podendo ser
+    // assinado; só não há portal a liberar nem cliente a avisar.
+    const clientRef =
+      status === "signed" && contract.clientId
+        ? doc(db, "clients", contract.clientId)
+        : null;
+    const clientExists = clientRef ? (await tx.get(clientRef)).exists() : false;
+    if (status === "signed" && !clientExists) {
+      console.warn(
+        "Contrato assinado sem cliente válido: portal e aviso não aplicados.",
+        contractId,
+      );
+    }
+
     const updates: Record<string, string> = { status };
     // sentAt é a data do primeiro envio: preenchida ao enviar (ou ao assinar um
     // contrato que nunca foi enviado) e nunca sobrescrita depois.
@@ -304,10 +319,8 @@ export async function updateContractStatus(
 
     tx.update(contractRef, updates);
 
-    if (status === "signed") {
-      tx.update(doc(db, "clients", contract.clientId), {
-        onboardingComplete: true,
-      });
+    if (clientRef && clientExists) {
+      tx.update(clientRef, { onboardingComplete: true });
 
       // Só avisa na transição para assinado; regravar "signed" não repete o aviso.
       if (contract.status !== "signed") {
@@ -476,9 +489,13 @@ export async function getNotificationsByClientId(
   return (
     snapshot.docs
       .map((d) => mapDoc<ClientNotification>(d))
-      // O TTL do Firestore pode levar algumas horas para apagar um aviso vencido;
-      // até lá ele já não aparece no portal.
-      .filter((n) => n.expiresAt.toMillis() > now)
+      // O TTL do Firestore apaga um aviso vencido normalmente em até 24 horas e,
+      // até lá, ele continua vindo nas consultas: o portal o esconde na hora.
+      // Aviso sem expiresAt válido (ex.: criado à mão no console) não é apagado
+      // pelo TTL; ele aparece para o cliente poder excluí-lo ao clicar.
+      .filter(
+        (n) => !(n.expiresAt instanceof Timestamp) || n.expiresAt.toMillis() > now,
+      )
       .sort(
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),

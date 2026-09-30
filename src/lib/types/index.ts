@@ -109,7 +109,8 @@ export interface ClientNotification {
   contractId?: string;
   createdAt: string;
   // Data de validade (3 dias após a criação). A política de TTL do Firestore
-  // apaga o aviso depois dela; o portal já o esconde a partir desse momento.
+  // apaga o aviso depois dela (normalmente em até 24 horas); o portal já o
+  // esconde a partir desse momento.
   expiresAt: Timestamp;
 }
 

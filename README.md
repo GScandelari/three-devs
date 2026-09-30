@@ -74,8 +74,10 @@ escondendo os avisos vencidos, mas eles ficam guardados no banco. Para ativar:
    informe `expiresAt`.
 4. Salve e aguarde o status da política ficar como ativo.
 
-A exclusão pelo TTL costuma acontecer algumas horas depois do vencimento e conta
-como uma operação de exclusão normal do Firestore.
+Segundo a documentação do Firestore, a exclusão pelo TTL acontece normalmente em
+até 24 horas depois do vencimento, e até lá o documento continua aparecendo nas
+consultas (o portal já filtra os vencidos). Cada exclusão conta como uma operação
+de exclusão normal do Firestore.
 
 ## Testes das regras do Firestore
 

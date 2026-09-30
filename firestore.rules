@@ -64,14 +64,19 @@ service cloud.firestore {
         && request.resource.data.title.size() > 0
         && request.resource.data.title.size() <= 300
         && request.resource.data.createdAt is string
-        // O app grava criação + 3 dias; a folga de 1 dia cobre relógio adiantado.
+        // O app grava "agora + 3 dias" pelo relógio do computador do dev. Não há
+        // limite inferior (relógio atrasado só faz o aviso vencer antes) e o
+        // superior é folgado (relógio adiantado): um relógio errado nunca deve
+        // impedir a gravação do status, nota, link ou contrato que gerou o aviso.
         && request.resource.data.expiresAt is timestamp
-        && request.resource.data.expiresAt > request.time
-        && request.resource.data.expiresAt <= request.time + duration.value(4, 'd');
+        && request.resource.data.expiresAt <= request.time + duration.value(30, 'd');
       allow update: if false;
+      // resource == null: o aviso já foi excluído (outro aparelho, TTL). Excluir
+      // o que não existe não faz nada e não deve aparecer como erro ao cliente.
       allow delete: if isAuthenticated()
-        && resource.data.clientId != null
-        && isOwnClientById(resource.data.clientId);
+        && (resource == null
+            || (resource.data.clientId != null
+                && isOwnClientById(resource.data.clientId)));
     }
 
     match /developers/{developerId} {

@@ -36,6 +36,9 @@ export function NotificationBell() {
   const [actionError, setActionError] = useState("");
   const [clearing, setClearing] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  // Avisos já excluídos nesta tela: uma consulta iniciada antes da exclusão não
+  // pode trazê-los de volta.
+  const deletedIds = useRef(new Set<string>());
 
   // Recarrega ao entrar no portal, ao trocar de página e ao abrir a lista.
   useEffect(() => {
@@ -47,7 +50,7 @@ export function NotificationBell() {
       try {
         const data = await getNotificationsByClientId(id);
         if (cancelled) return;
-        setNotifications(data);
+        setNotifications(data.filter((n) => !deletedIds.current.has(n.id)));
         setLoadError(false);
       } catch (err) {
         console.error("Erro ao carregar avisos:", err);
@@ -95,19 +98,29 @@ export function NotificationBell() {
     setOpen(!open);
   }
 
+  // Exclui no servidor e já tira da tela. Se falhar, os avisos voltam a poder
+  // aparecer e a lista é recarregada com o estado real.
+  async function removeNotifications(ids: string[]) {
+    ids.forEach((id) => deletedIds.current.add(id));
+    setNotifications((prev) => prev?.filter((n) => !ids.includes(n.id)) ?? prev);
+
+    try {
+      await deleteNotifications(ids);
+    } catch (err) {
+      ids.forEach((id) => deletedIds.current.delete(id));
+      setReloadKey((k) => k + 1);
+      throw err;
+    }
+  }
+
   async function handleOpenNotification(notification: ClientNotification) {
     setOpen(false);
     router.push(notificationHref(notification));
-    setNotifications(
-      (prev) => prev?.filter((n) => n.id !== notification.id) ?? prev,
-    );
 
     try {
-      await deleteNotifications([notification.id]);
+      await removeNotifications([notification.id]);
     } catch (err) {
       console.error("Erro ao excluir aviso visualizado:", err);
-      // Volta ao estado real do servidor: o aviso continua na lista.
-      setReloadKey((k) => k + 1);
     }
   }
 
@@ -117,13 +130,12 @@ export function NotificationBell() {
     setClearing(true);
 
     try {
-      await deleteNotifications((notifications ?? []).map((n) => n.id));
+      await removeNotifications((notifications ?? []).map((n) => n.id));
     } catch (err) {
       console.error("Erro ao limpar avisos:", err);
       setActionError("Não foi possível limpar os avisos.");
     } finally {
       setClearing(false);
-      setReloadKey((k) => k + 1);
     }
   }
 

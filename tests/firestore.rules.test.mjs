@@ -181,7 +181,7 @@ describe("criação de avisos", () => {
     );
   });
 
-  test("expiresAt precisa ser data futura de até 4 dias", async () => {
+  test("expiresAt precisa ser Timestamp de até 30 dias à frente", async () => {
     await assertFails(
       setDoc(
         doc(dev, "notifications/x"),
@@ -189,13 +189,21 @@ describe("criação de avisos", () => {
       ),
     );
     await assertFails(
-      setDoc(doc(dev, "notifications/x"), validNotification({ expiresAt: inDays(-1) })),
-    );
-    await assertFails(
-      setDoc(doc(dev, "notifications/x"), validNotification({ expiresAt: inDays(5) })),
+      setDoc(doc(dev, "notifications/x"), validNotification({ expiresAt: inDays(31) })),
     );
     await assertSucceeds(
       setDoc(doc(dev, "notifications/x"), validNotification({ expiresAt: inDays(3) })),
+    );
+  });
+
+  test("relógio do dev errado não bloqueia a gravação", async () => {
+    // Relógio atrasado 5 dias: o aviso já nasce vencido (o portal o esconde).
+    await assertSucceeds(
+      setDoc(doc(dev, "notifications/late"), validNotification({ expiresAt: inDays(-2) })),
+    );
+    // Relógio adiantado 10 dias: o aviso só dura mais.
+    await assertSucceeds(
+      setDoc(doc(dev, "notifications/early"), validNotification({ expiresAt: inDays(13) })),
     );
   });
 
@@ -265,6 +273,20 @@ describe("excluir aviso visualizado", () => {
   test("desenvolvedor e visitante não excluem avisos", async () => {
     await assertFails(deleteDoc(doc(dev, "notifications/nA1")));
     await assertFails(deleteDoc(doc(anon, "notifications/nA1")));
+  });
+
+  test("excluir um aviso que já não existe não é erro (outro aparelho, TTL)", async () => {
+    await assertSucceeds(deleteDoc(doc(clientA, "notifications/nA1")));
+    await assertSucceeds(deleteDoc(doc(clientA, "notifications/nA1")));
+    await assertSucceeds(deleteDoc(doc(clientA, "notifications/nunca-existiu")));
+    // Visitante sem login continua sem permissão, mesmo para o que não existe.
+    await assertFails(deleteDoc(doc(anon, "notifications/nunca-existiu")));
+  });
+
+  test("excluir aviso inexistente não abre brecha para apagar o de outro cliente", async () => {
+    await assertFails(deleteDoc(doc(clientA, "notifications/nB1")));
+    const stillThere = await getDoc(doc(clientB, "notifications/nB1"));
+    if (!stillThere.exists()) throw new Error("aviso do cliente B foi apagado");
   });
 
   test("cliente exclui 30 avisos de uma vez (Limpar avisos)", async () => {
