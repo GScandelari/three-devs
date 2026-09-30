@@ -28,6 +28,10 @@ function ProjectAdminContent() {
   const [linkLabel, setLinkLabel] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
   const [saving, setSaving] = useState(false);
+  const [notifyStatus, setNotifyStatus] = useState(true);
+  const [notifyNote, setNotifyNote] = useState(true);
+  const [notifyLink, setNotifyLink] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!projectId) return;
@@ -60,42 +64,88 @@ function ProjectAdminContent() {
 
   async function reload() {
     if (!projectId) return;
-    setProject(await getProjectById(projectId));
+    try {
+      setProject(await getProjectById(projectId));
+    } catch (err) {
+      console.error("Erro ao recarregar projeto:", err);
+      setError(
+        "A alteração foi salva, mas não foi possível recarregar o projeto. Atualize a página.",
+      );
+    }
   }
 
   async function handleStatusChange(status: ProjectStatus) {
-    await updateProjectStatus(currentProject.id, status);
-    await reload();
+    if (saving || status === currentProject.status) return;
+    setError("");
+    setSaving(true);
+
+    try {
+      await updateProjectStatus(currentProject.id, status, {
+        notifyClient: notifyStatus,
+      });
+      await reload();
+    } catch (err) {
+      console.error("Erro ao alterar status do projeto:", err);
+      setError("Não foi possível alterar o status. Nada foi salvo.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleAddNote(e: React.FormEvent) {
     e.preventDefault();
-    if (!developer || !note.trim()) return;
+    if (saving || !developer || !note.trim()) return;
+    setError("");
     setSaving(true);
-    await addProjectNote(currentProject.id, {
-      content: note.trim(),
-      authorId: developer.id,
-      authorName: developer.name,
-      important,
-    });
-    setNote("");
-    setImportant(false);
-    await reload();
-    setSaving(false);
+
+    try {
+      await addProjectNote(
+        currentProject.id,
+        {
+          content: note.trim(),
+          authorId: developer.id,
+          authorName: developer.name,
+          important,
+        },
+        { notifyClient: notifyNote },
+      );
+      setNote("");
+      setImportant(false);
+      setNotifyNote(true);
+      await reload();
+    } catch (err) {
+      console.error("Erro ao publicar nota:", err);
+      setError("Não foi possível publicar a nota. Nada foi salvo.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleAddLink(e: React.FormEvent) {
     e.preventDefault();
-    if (!linkLabel.trim() || !linkUrl.trim()) return;
+    if (saving || !linkLabel.trim() || !linkUrl.trim()) return;
+    setError("");
     setSaving(true);
-    await addProjectLink(currentProject.id, {
-      label: linkLabel.trim(),
-      url: linkUrl.trim(),
-    });
-    setLinkLabel("");
-    setLinkUrl("");
-    await reload();
-    setSaving(false);
+
+    try {
+      await addProjectLink(
+        currentProject.id,
+        {
+          label: linkLabel.trim(),
+          url: linkUrl.trim(),
+        },
+        { notifyClient: notifyLink },
+      );
+      setLinkLabel("");
+      setLinkUrl("");
+      setNotifyLink(true);
+      await reload();
+    } catch (err) {
+      console.error("Erro ao adicionar link:", err);
+      setError("Não foi possível adicionar o link. Nada foi salvo.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -121,6 +171,12 @@ function ProjectAdminContent() {
         </span>
       </div>
 
+      {error && (
+        <p role="alert" className="mt-4 text-sm text-red-600">
+          {error}
+        </p>
+      )}
+
       <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6">
         <h2 className="text-sm font-medium uppercase tracking-wider text-slate-400">
           Status do projeto
@@ -130,8 +186,11 @@ function ProjectAdminContent() {
             (status) => (
               <button
                 key={status}
+                type="button"
+                disabled={saving}
+                aria-pressed={project.status === status}
                 onClick={() => handleStatusChange(status)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed ${
                   project.status === status
                     ? "bg-indigo-600 text-white"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
@@ -142,6 +201,14 @@ function ProjectAdminContent() {
             ),
           )}
         </div>
+        <label className="mt-4 flex items-center gap-2 text-sm text-slate-600">
+          <input
+            type="checkbox"
+            checked={notifyStatus}
+            onChange={(e) => setNotifyStatus(e.target.checked)}
+          />
+          Avisar o cliente
+        </label>
       </section>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
@@ -162,6 +229,14 @@ function ProjectAdminContent() {
                 onChange={(e) => setImportant(e.target.checked)}
               />
               Marcar como importante
+            </label>
+            <label className="flex items-center gap-2 text-sm text-slate-600">
+              <input
+                type="checkbox"
+                checked={notifyNote}
+                onChange={(e) => setNotifyNote(e.target.checked)}
+              />
+              Avisar o cliente
             </label>
             <Button type="submit" disabled={saving || !note.trim()}>
               Publicar nota
@@ -209,6 +284,14 @@ function ProjectAdminContent() {
               placeholder="URL"
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
             />
+            <label className="flex items-center gap-2 text-sm text-slate-600">
+              <input
+                type="checkbox"
+                checked={notifyLink}
+                onChange={(e) => setNotifyLink(e.target.checked)}
+              />
+              Avisar o cliente
+            </label>
             <Button type="submit" disabled={saving}>
               Adicionar link
             </Button>

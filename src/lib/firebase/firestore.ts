@@ -8,9 +8,13 @@ import {
   deleteDoc,
   query,
   where,
+  runTransaction,
+  type Firestore,
+  type Transaction,
 } from "firebase/firestore";
 import type {
   Client,
+  ClientNotification,
   Contract,
   ContractStatus,
   ContractTemplateData,
@@ -24,7 +28,11 @@ import {
   EMPTY_CONTRACT_TEMPLATE,
   buildContractTitle,
 } from "@/lib/contracts/template";
+import { projectStatusLabels } from "@/lib/labels";
 import { getFirebaseDb } from "./config";
+
+// firestore.rules rejeita títulos acima de 300 caracteres; cortamos antes, com folga.
+const NOTIFICATION_TITLE_MAX = 200;
 
 function mapDoc<T>(snap: { id: string; data: () => Record<string, unknown> }): T {
   return { id: snap.id, ...snap.data() } as T;
@@ -34,6 +42,35 @@ function dbOrThrow() {
   const db = getFirebaseDb();
   if (!db) throw new Error("Firebase não configurado");
   return db;
+}
+
+// Inclui o aviso na mesma transação da alteração que o originou: ou os dois são
+// gravados, ou nenhum. A transação também relê o documento antes de gravar, então
+// duas gravações simultâneas não se sobrescrevem nem geram aviso repetido.
+function queueNotification(
+  tx: Transaction,
+  db: Firestore,
+  notification: Pick<ClientNotification, "clientId" | "type" | "title"> &
+    ({ projectId: string } | { contractId: string }),
+  createdAt: string,
+) {
+  tx.set(doc(db, "notifications", crypto.randomUUID()), {
+    ...notification,
+    title: notification.title.slice(0, NOTIFICATION_TITLE_MAX),
+    createdAt,
+    readAt: null,
+  });
+}
+
+async function getProjectInTransaction(
+  tx: Transaction,
+  db: Firestore,
+  projectId: string,
+) {
+  const ref = doc(db, "projects", projectId);
+  const snap = await tx.get(ref);
+  if (!snap.exists()) throw new Error("Projeto não encontrado");
+  return { ref, project: mapDoc<Project>(snap) };
 }
 
 export async function getDeveloperByUid(
@@ -234,6 +271,7 @@ export async function updateContractStatus(
 ) {
   const db = dbOrThrow();
   const now = new Date().toISOString();
+  const contractRef = doc(db, "contracts", contractId);
   const updates: Record<string, string> = { status };
 
   if (status === "sent") updates.sentAt = now;
@@ -242,17 +280,34 @@ export async function updateContractStatus(
     updates.signedAt = now;
   }
 
-  await updateDoc(doc(db, "contracts", contractId), updates);
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(contractRef);
+    if (!snap.exists()) throw new Error("Contrato não encontrado");
+    const contract = mapDoc<Contract>(snap);
 
-  if (status === "signed") {
-    const contract = await getDoc(doc(db, "contracts", contractId));
-    if (contract.exists()) {
-      const clientId = contract.data().clientId as string;
-      await updateDoc(doc(db, "clients", clientId), {
+    tx.update(contractRef, updates);
+
+    if (status === "signed") {
+      tx.update(doc(db, "clients", contract.clientId), {
         onboardingComplete: true,
       });
+
+      // Só avisa na transição para assinado; regravar "signed" não repete o aviso.
+      if (contract.status !== "signed") {
+        queueNotification(
+          tx,
+          db,
+          {
+            clientId: contract.clientId,
+            type: "contract_signed",
+            title: `Contrato assinado: ${contract.title}`,
+            contractId,
+          },
+          now,
+        );
+      }
     }
-  }
+  });
 }
 
 export async function createProject(data: {
@@ -286,48 +341,139 @@ export async function createProject(data: {
 export async function updateProjectStatus(
   projectId: string,
   status: ProjectStatus,
+  options: { notifyClient?: boolean } = {},
 ) {
-  await updateDoc(doc(dbOrThrow(), "projects", projectId), {
-    status,
-    updatedAt: new Date().toISOString(),
+  const db = dbOrThrow();
+  const now = new Date().toISOString();
+
+  await runTransaction(db, async (tx) => {
+    const { ref, project } = await getProjectInTransaction(tx, db, projectId);
+    // Regravar o status atual não é uma mudança: não grava nem avisa.
+    if (project.status === status) return;
+
+    tx.update(ref, { status, updatedAt: now });
+
+    if (options.notifyClient) {
+      queueNotification(
+        tx,
+        db,
+        {
+          clientId: project.clientId,
+          type: "project_status",
+          title: `${project.name}: status alterado para ${projectStatusLabels[status]}`,
+          projectId,
+        },
+        now,
+      );
+    }
   });
 }
 
 export async function addProjectNote(
   projectId: string,
   note: Omit<ProjectNote, "id" | "createdAt">,
+  options: { notifyClient?: boolean } = {},
 ) {
-  const project = await getProjectById(projectId);
-  if (!project) throw new Error("Projeto não encontrado");
-
+  const db = dbOrThrow();
+  const now = new Date().toISOString();
   const newNote: ProjectNote = {
     ...note,
     id: crypto.randomUUID(),
-    createdAt: new Date().toISOString(),
+    createdAt: now,
   };
 
-  await updateDoc(doc(dbOrThrow(), "projects", projectId), {
-    notes: [...(project.notes ?? []), newNote],
-    updatedAt: new Date().toISOString(),
+  await runTransaction(db, async (tx) => {
+    const { ref, project } = await getProjectInTransaction(tx, db, projectId);
+
+    tx.update(ref, {
+      notes: [...(project.notes ?? []), newNote],
+      updatedAt: now,
+    });
+
+    if (options.notifyClient) {
+      queueNotification(
+        tx,
+        db,
+        {
+          clientId: project.clientId,
+          type: "project_note",
+          title: note.important
+            ? `${project.name}: atualização importante`
+            : `${project.name}: nova atualização`,
+          projectId,
+        },
+        now,
+      );
+    }
   });
 }
 
 export async function addProjectLink(
   projectId: string,
   link: Omit<ProjectLink, "id">,
+  options: { notifyClient?: boolean } = {},
 ) {
-  const project = await getProjectById(projectId);
-  if (!project) throw new Error("Projeto não encontrado");
-
+  const db = dbOrThrow();
+  const now = new Date().toISOString();
   const newLink: ProjectLink = {
     ...link,
     id: crypto.randomUUID(),
   };
 
-  await updateDoc(doc(dbOrThrow(), "projects", projectId), {
-    links: [...(project.links ?? []), newLink],
-    updatedAt: new Date().toISOString(),
+  await runTransaction(db, async (tx) => {
+    const { ref, project } = await getProjectInTransaction(tx, db, projectId);
+
+    tx.update(ref, {
+      links: [...(project.links ?? []), newLink],
+      updatedAt: now,
+    });
+
+    if (options.notifyClient) {
+      queueNotification(
+        tx,
+        db,
+        {
+          clientId: project.clientId,
+          type: "project_link",
+          title: `${project.name}: novo link — ${link.label}`,
+          projectId,
+        },
+        now,
+      );
+    }
   });
+}
+
+export async function getNotificationsByClientId(
+  clientId: string,
+): Promise<ClientNotification[]> {
+  const db = getFirebaseDb();
+  if (!db) return [];
+
+  const q = query(
+    collection(db, "notifications"),
+    where("clientId", "==", clientId),
+  );
+  const snapshot = await getDocs(q);
+  return snapshot.docs
+    .map((d) => mapDoc<ClientNotification>(d))
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+}
+
+export async function markNotificationsRead(notificationIds: string[]) {
+  const db = dbOrThrow();
+  const now = new Date().toISOString();
+
+  // Escritas independentes: marcar como lido não precisa ser atômico, e assim
+  // cada uma é validada sozinha pelas regras (sem o limite de leituras por batch).
+  await Promise.all(
+    notificationIds.map((id) =>
+      updateDoc(doc(db, "notifications", id), { readAt: now }),
+    ),
+  );
 }
 
 export async function deleteClient(clientId: string) {

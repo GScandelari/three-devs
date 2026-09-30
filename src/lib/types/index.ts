@@ -92,6 +92,23 @@ export interface Project {
   updatedAt: string;
 }
 
+export type ClientNotificationType =
+  | "project_status"
+  | "project_note"
+  | "project_link"
+  | "contract_signed";
+
+export interface ClientNotification {
+  id: string;
+  clientId: string;
+  type: ClientNotificationType;
+  title: string;
+  projectId?: string;
+  contractId?: string;
+  createdAt: string;
+  readAt: string | null;
+}
+
 export interface Developer {
   id: string;
   email: string;

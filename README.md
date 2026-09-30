@@ -48,7 +48,14 @@ npm run dev
 ```bash
 npm run deploy              # build + hosting + firestore rules
 npm run deploy:hosting      # apenas hosting
+npm run deploy:firestore    # apenas regras e índices do Firestore
 ```
+
+> O deploy automático (GitHub Actions) publica **apenas o hosting**. Mudanças em
+> `firestore.rules` precisam de `npm run deploy:firestore`. Os avisos ao cliente
+> dependem das regras da coleção `notifications`: publique as regras **antes**
+> do site, senão o sininho do portal não carrega e salvar no admin com
+> "Avisar o cliente" marcado falha.
 
 ## Adicionar desenvolvedores
 

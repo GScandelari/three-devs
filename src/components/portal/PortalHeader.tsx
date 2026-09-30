@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signOut } from "@/lib/firebase/auth";
 import { useAuth } from "@/contexts/AuthContext";
+import { NotificationBell } from "@/components/portal/NotificationBell";
 
 export function PortalHeader() {
   const { client } = useAuth();
@@ -23,6 +24,7 @@ export function PortalHeader() {
         </Link>
 
         <div className="flex items-center gap-4">
+          <NotificationBell />
           {client?.name && (
             <span className="hidden text-sm text-slate-600 sm:block">
               {client.name}

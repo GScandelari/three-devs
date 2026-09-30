@@ -55,6 +55,47 @@ Lead → Proposta (time) → Cliente aceita?
                     Projetos, links, notas
 ```
 
+## Avisos ao cliente (portal)
+
+O cliente é avisado **dentro do portal**: um sininho no cabeçalho mostra a
+quantidade de avisos não lidos e abre a lista dos 20 mais recentes. Não há
+envio de e-mail nem de mensagens externas.
+
+| Acontecimento | Onde é gerado | Quando avisa |
+|---------------|---------------|--------------|
+| Mudança de status do projeto | Admin → Projeto | Se "Avisar o cliente" estiver marcado (padrão: marcado) |
+| Nova nota | Admin → Projeto | Se "Avisar o cliente" estiver marcado (padrão: marcado) |
+| Novo link | Admin → Projeto | Se "Avisar o cliente" estiver marcado (padrão: marcado) |
+| Contrato assinado | Admin → Contratos | Sempre |
+
+Regras de funcionamento:
+
+- O aviso é gravado na mesma transação da alteração que o originou: ou os dois
+  são salvos, ou nenhum. A transação relê o documento antes de gravar, então
+  clique duplo ou dois devs salvando ao mesmo tempo não geram aviso repetido.
+- Clicar no status que já está ativo não grava nem avisa.
+- Clicar num aviso leva ao projeto (ou ao contrato) e marca o aviso como lido.
+  "Marcar todos como lidos" marca todos os não lidos de uma vez.
+- A lista é recarregada ao entrar no portal, ao trocar de página e ao abrir o
+  sininho (não é em tempo real).
+
+Cada aviso é um documento em `notifications/{notificationId}`:
+
+```json
+{
+  "clientId": "<clientId>",
+  "type": "project_status",
+  "title": "App XYZ: status alterado para Em revisão",
+  "projectId": "<projectId>",
+  "createdAt": "2026-09-30T00:00:00.000Z",
+  "readAt": null
+}
+```
+
+`type` é um de `project_status`, `project_note`, `project_link` ou
+`contract_signed` (este usa `contractId` no lugar de `projectId`). `readAt`
+recebe a data em que o cliente leu o aviso.
+
 ## Dados de exemplo (Firestore)
 
 Para testar o portal, crie manualmente no Firebase Console:

@@ -44,6 +44,34 @@ service cloud.firestore {
       allow create, update, delete: if isDeveloper();
     }
 
+    // Avisos ao cliente exibidos no portal. Só desenvolvedores criam; o cliente
+    // lê os próprios e só pode marcá-los como lidos (campo readAt).
+    match /notifications/{notificationId} {
+      allow read: if isDeveloper()
+        || (isAuthenticated()
+            && resource.data.clientId != null
+            && isOwnClientById(resource.data.clientId));
+      allow create: if isDeveloper()
+        && request.resource.data.keys().hasOnly(
+          ["clientId", "type", "title", "projectId", "contractId", "createdAt", "readAt"])
+        && request.resource.data.keys().hasAll(
+          ["clientId", "type", "title", "createdAt", "readAt"])
+        && request.resource.data.clientId is string
+        && request.resource.data.type in
+          ["project_status", "project_note", "project_link", "contract_signed"]
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 300
+        && request.resource.data.createdAt is string
+        && request.resource.data.readAt == null;
+      allow update: if isAuthenticated()
+        && resource.data.clientId != null
+        && isOwnClientById(resource.data.clientId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["readAt"])
+        && request.resource.data.readAt is string;
+      allow delete: if false;
+    }
+
     match /developers/{developerId} {
       // Permite get do próprio UID (mesmo se o doc não existir) —
       // necessário para o app distinguir cliente vs desenvolvedor no login.
