@@ -48,7 +48,47 @@ npm run dev
 ```bash
 npm run deploy              # build + hosting + firestore rules
 npm run deploy:hosting      # apenas hosting
+npm run deploy:firestore    # apenas regras e índices do Firestore
 ```
+
+A CLI do Firebase (`firebase-tools`) está nas dependências de desenvolvimento, então
+os scripts acima funcionam após `npm install`, sem instalação global. Na primeira
+vez, autentique-se com `npx firebase login`.
+
+> O deploy automático (GitHub Actions) publica **apenas o hosting**. Mudanças em
+> `firestore.rules` precisam de `npm run deploy:firestore`. Os avisos ao cliente
+> dependem das regras da coleção `notifications`: publique as regras **antes**
+> do merge na `main`. Sem elas, o sininho do portal não carrega, "Marcar
+> assinado" falha sempre e salvar no admin com "Avisar o cliente" marcado falha.
+
+### Expiração automática dos avisos (TTL) — configurar uma vez
+
+Os avisos não visualizados são apagados 3 dias após a criação por uma política de
+TTL do Firestore no campo `expiresAt`. Sem essa política, o portal continua
+escondendo os avisos vencidos, mas eles ficam guardados no banco. Para ativar:
+
+1. Abra o [Console do Google Cloud](https://console.cloud.google.com/firestore)
+   no projeto `three-devs` → **Firestore** → **Time-to-live (TTL)**.
+2. Clique em **Create policy**.
+3. Em **Collection group**, informe `notifications`; em **Timestamp field**,
+   informe `expiresAt`.
+4. Salve e aguarde o status da política ficar como ativo.
+
+Segundo a documentação do Firestore, a exclusão pelo TTL acontece normalmente em
+até 24 horas depois do vencimento, e até lá o documento continua aparecendo nas
+consultas (o portal já filtra os vencidos). Cada exclusão conta como uma operação
+de exclusão normal do Firestore.
+
+## Testes das regras do Firestore
+
+```bash
+npm run test:rules
+```
+
+Roda `tests/firestore.rules.test.mjs` contra o emulador local do Firestore, com
+um projeto `demo-*` que só existe no emulador (nenhum dado real é usado). Requer
+**Java 21 ou superior** instalado. O workflow `Testar regras do Firestore` roda os
+mesmos testes em todo pull request e em push na `main`.
 
 ## Adicionar desenvolvedores
 

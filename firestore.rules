@@ -44,6 +44,41 @@ service cloud.firestore {
       allow create, update, delete: if isDeveloper();
     }
 
+    // Avisos ao cliente exibidos no portal. Só desenvolvedores criam; o cliente
+    // lê os próprios e os exclui ao visualizá-los. Os não visualizados são
+    // apagados pela política de TTL do Firestore no campo expiresAt (3 dias).
+    match /notifications/{notificationId} {
+      allow read: if isDeveloper()
+        || (isAuthenticated()
+            && resource.data.clientId != null
+            && isOwnClientById(resource.data.clientId));
+      allow create: if isDeveloper()
+        && request.resource.data.keys().hasOnly(
+          ["clientId", "type", "title", "projectId", "contractId", "createdAt", "expiresAt"])
+        && request.resource.data.keys().hasAll(
+          ["clientId", "type", "title", "createdAt", "expiresAt"])
+        && request.resource.data.clientId is string
+        && request.resource.data.type in
+          ["project_status", "project_note", "project_link", "contract_signed"]
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 300
+        && request.resource.data.createdAt is string
+        // O app grava "agora + 3 dias" pelo relógio do computador do dev. Não há
+        // limite inferior (relógio atrasado só faz o aviso vencer antes) e o
+        // superior é folgado (relógio adiantado): um relógio errado nunca deve
+        // impedir a gravação do status, nota, link ou contrato que gerou o aviso.
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.expiresAt <= request.time + duration.value(30, 'd');
+      allow update: if false;
+      // resource == null: o aviso já foi excluído (outro aparelho, TTL). Excluir
+      // o que não existe não faz nada e não deve aparecer como erro ao cliente.
+      allow delete: if isAuthenticated()
+        && (resource == null
+            || (resource.data.clientId != null
+                && isOwnClientById(resource.data.clientId)));
+    }
+
     match /developers/{developerId} {
       // Permite get do próprio UID (mesmo se o doc não existir) —
       // necessário para o app distinguir cliente vs desenvolvedor no login.

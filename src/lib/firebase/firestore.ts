@@ -8,9 +8,14 @@ import {
   deleteDoc,
   query,
   where,
+  runTransaction,
+  Timestamp,
+  type Firestore,
+  type Transaction,
 } from "firebase/firestore";
 import type {
   Client,
+  ClientNotification,
   Contract,
   ContractStatus,
   ContractTemplateData,
@@ -24,7 +29,13 @@ import {
   EMPTY_CONTRACT_TEMPLATE,
   buildContractTitle,
 } from "@/lib/contracts/template";
+import { projectStatusLabels } from "@/lib/labels";
 import { getFirebaseDb } from "./config";
+
+// firestore.rules rejeita títulos acima de 300 caracteres; cortamos antes, com folga.
+const NOTIFICATION_TITLE_MAX = 200;
+// Avisos não visualizados expiram 3 dias após a criação (TTL em expiresAt).
+const NOTIFICATION_TTL_MS = 3 * 24 * 60 * 60 * 1000;
 
 function mapDoc<T>(snap: { id: string; data: () => Record<string, unknown> }): T {
   return { id: snap.id, ...snap.data() } as T;
@@ -34,6 +45,42 @@ function dbOrThrow() {
   const db = getFirebaseDb();
   if (!db) throw new Error("Firebase não configurado");
   return db;
+}
+
+// Inclui o aviso na mesma transação da alteração que o originou: ou os dois são
+// gravados, ou nenhum. A transação também relê o documento antes de gravar, então
+// duas gravações simultâneas não se sobrescrevem nem geram aviso repetido.
+function queueNotification(
+  tx: Transaction,
+  db: Firestore,
+  notification: Pick<ClientNotification, "clientId" | "type" | "title"> &
+    ({ projectId: string } | { contractId: string }),
+  createdAt: string,
+) {
+  // Registro sem cliente vinculado (ex.: criado à mão no console): a alteração
+  // é gravada normalmente, só não há a quem avisar.
+  if (!notification.clientId) {
+    console.warn("Aviso não gerado: registro sem clientId.", notification);
+    return;
+  }
+
+  tx.set(doc(db, "notifications", crypto.randomUUID()), {
+    ...notification,
+    title: notification.title.slice(0, NOTIFICATION_TITLE_MAX),
+    createdAt,
+    expiresAt: Timestamp.fromMillis(Date.parse(createdAt) + NOTIFICATION_TTL_MS),
+  });
+}
+
+async function getProjectInTransaction(
+  tx: Transaction,
+  db: Firestore,
+  projectId: string,
+) {
+  const ref = doc(db, "projects", projectId);
+  const snap = await tx.get(ref);
+  if (!snap.exists()) throw new Error("Projeto não encontrado");
+  return { ref, project: mapDoc<Project>(snap) };
 }
 
 export async function getDeveloperByUid(
@@ -234,25 +281,63 @@ export async function updateContractStatus(
 ) {
   const db = dbOrThrow();
   const now = new Date().toISOString();
-  const updates: Record<string, string> = { status };
+  const contractRef = doc(db, "contracts", contractId);
 
-  if (status === "sent") updates.sentAt = now;
-  if (status === "signed") {
-    updates.sentAt = updates.sentAt ?? now;
-    updates.signedAt = now;
-  }
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(contractRef);
+    if (!snap.exists()) throw new Error("Contrato não encontrado");
+    const contract = mapDoc<Contract>(snap);
 
-  await updateDoc(doc(db, "contracts", contractId), updates);
-
-  if (status === "signed") {
-    const contract = await getDoc(doc(db, "contracts", contractId));
-    if (contract.exists()) {
-      const clientId = contract.data().clientId as string;
-      await updateDoc(doc(db, "clients", clientId), {
-        onboardingComplete: true,
-      });
+    // Numa transação, todas as leituras vêm antes das escritas. Contrato sem
+    // cliente válido (criado à mão, cliente removido) continua podendo ser
+    // assinado; só não há portal a liberar nem cliente a avisar.
+    const clientRef =
+      status === "signed" && contract.clientId
+        ? doc(db, "clients", contract.clientId)
+        : null;
+    const clientExists = clientRef ? (await tx.get(clientRef)).exists() : false;
+    if (status === "signed" && !clientExists) {
+      console.warn(
+        "Contrato assinado sem cliente válido: portal e aviso não aplicados.",
+        contractId,
+      );
     }
-  }
+
+    const updates: Record<string, string> = { status };
+    // sentAt é a data do primeiro envio: preenchida ao enviar (ou ao assinar um
+    // contrato que nunca foi enviado) e nunca sobrescrita depois.
+    if ((status === "sent" || status === "signed") && !contract.sentAt) {
+      updates.sentAt = now;
+    }
+    // signedAt é a data da assinatura: regravar "signed" não a altera.
+    if (
+      status === "signed" &&
+      (contract.status !== "signed" || !contract.signedAt)
+    ) {
+      updates.signedAt = now;
+    }
+
+    tx.update(contractRef, updates);
+
+    if (clientRef && clientExists) {
+      tx.update(clientRef, { onboardingComplete: true });
+
+      // Só avisa na transição para assinado; regravar "signed" não repete o aviso.
+      if (contract.status !== "signed") {
+        queueNotification(
+          tx,
+          db,
+          {
+            clientId: contract.clientId,
+            type: "contract_signed",
+            title: `Contrato assinado: ${contract.title}`,
+            contractId,
+          },
+          now,
+        );
+      }
+    }
+  });
 }
 
 export async function createProject(data: {
@@ -286,48 +371,145 @@ export async function createProject(data: {
 export async function updateProjectStatus(
   projectId: string,
   status: ProjectStatus,
+  options: { notifyClient?: boolean } = {},
 ) {
-  await updateDoc(doc(dbOrThrow(), "projects", projectId), {
-    status,
-    updatedAt: new Date().toISOString(),
+  const db = dbOrThrow();
+  const now = new Date().toISOString();
+
+  await runTransaction(db, async (tx) => {
+    const { ref, project } = await getProjectInTransaction(tx, db, projectId);
+    // Regravar o status atual não é uma mudança: não grava nem avisa.
+    if (project.status === status) return;
+
+    tx.update(ref, { status, updatedAt: now });
+
+    if (options.notifyClient) {
+      queueNotification(
+        tx,
+        db,
+        {
+          clientId: project.clientId,
+          type: "project_status",
+          title: `${project.name}: status alterado para ${projectStatusLabels[status]}`,
+          projectId,
+        },
+        now,
+      );
+    }
   });
 }
 
 export async function addProjectNote(
   projectId: string,
   note: Omit<ProjectNote, "id" | "createdAt">,
+  options: { notifyClient?: boolean } = {},
 ) {
-  const project = await getProjectById(projectId);
-  if (!project) throw new Error("Projeto não encontrado");
-
+  const db = dbOrThrow();
+  const now = new Date().toISOString();
   const newNote: ProjectNote = {
     ...note,
     id: crypto.randomUUID(),
-    createdAt: new Date().toISOString(),
+    createdAt: now,
   };
 
-  await updateDoc(doc(dbOrThrow(), "projects", projectId), {
-    notes: [...(project.notes ?? []), newNote],
-    updatedAt: new Date().toISOString(),
+  await runTransaction(db, async (tx) => {
+    const { ref, project } = await getProjectInTransaction(tx, db, projectId);
+
+    tx.update(ref, {
+      notes: [...(project.notes ?? []), newNote],
+      updatedAt: now,
+    });
+
+    if (options.notifyClient) {
+      queueNotification(
+        tx,
+        db,
+        {
+          clientId: project.clientId,
+          type: "project_note",
+          title: note.important
+            ? `${project.name}: atualização importante`
+            : `${project.name}: nova atualização`,
+          projectId,
+        },
+        now,
+      );
+    }
   });
 }
 
 export async function addProjectLink(
   projectId: string,
   link: Omit<ProjectLink, "id">,
+  options: { notifyClient?: boolean } = {},
 ) {
-  const project = await getProjectById(projectId);
-  if (!project) throw new Error("Projeto não encontrado");
-
+  const db = dbOrThrow();
+  const now = new Date().toISOString();
   const newLink: ProjectLink = {
     ...link,
     id: crypto.randomUUID(),
   };
 
-  await updateDoc(doc(dbOrThrow(), "projects", projectId), {
-    links: [...(project.links ?? []), newLink],
-    updatedAt: new Date().toISOString(),
+  await runTransaction(db, async (tx) => {
+    const { ref, project } = await getProjectInTransaction(tx, db, projectId);
+
+    tx.update(ref, {
+      links: [...(project.links ?? []), newLink],
+      updatedAt: now,
+    });
+
+    if (options.notifyClient) {
+      queueNotification(
+        tx,
+        db,
+        {
+          clientId: project.clientId,
+          type: "project_link",
+          title: `${project.name}: novo link — ${link.label}`,
+          projectId,
+        },
+        now,
+      );
+    }
   });
+}
+
+export async function getNotificationsByClientId(
+  clientId: string,
+): Promise<ClientNotification[]> {
+  const db = getFirebaseDb();
+  if (!db) return [];
+
+  const q = query(
+    collection(db, "notifications"),
+    where("clientId", "==", clientId),
+  );
+  const snapshot = await getDocs(q);
+  const now = Date.now();
+  return (
+    snapshot.docs
+      .map((d) => mapDoc<ClientNotification>(d))
+      // O TTL do Firestore apaga um aviso vencido normalmente em até 24 horas e,
+      // até lá, ele continua vindo nas consultas: o portal o esconde na hora.
+      // Aviso sem expiresAt válido (ex.: criado à mão no console) não é apagado
+      // pelo TTL; ele aparece para o cliente poder excluí-lo ao clicar.
+      .filter(
+        (n) => !(n.expiresAt instanceof Timestamp) || n.expiresAt.toMillis() > now,
+      )
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      )
+  );
+}
+
+// Aviso visualizado (clicado) é excluído. Exclusões independentes: cada uma é
+// validada sozinha pelas regras (sem o limite de leituras por batch).
+export async function deleteNotifications(notificationIds: string[]) {
+  const db = dbOrThrow();
+  await Promise.all(
+    notificationIds.map((id) => deleteDoc(doc(db, "notifications", id))),
+  );
 }
 
 export async function deleteClient(clientId: string) {

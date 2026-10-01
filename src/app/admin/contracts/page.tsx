@@ -33,6 +33,7 @@ export default function AdminContractsPage() {
   });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [statusError, setStatusError] = useState("");
 
   async function loadData() {
     const [c, cl, p] = await Promise.all([
@@ -103,8 +104,24 @@ export default function AdminContractsPage() {
   }
 
   async function handleStatusChange(contractId: string, status: ContractStatus) {
-    await updateContractStatus(contractId, status);
-    await loadData();
+    setStatusError("");
+
+    try {
+      await updateContractStatus(contractId, status);
+    } catch (err) {
+      console.error("Erro ao atualizar status do contrato:", err);
+      setStatusError("Não foi possível atualizar o status do contrato.");
+      return;
+    }
+
+    try {
+      await loadData();
+    } catch (err) {
+      console.error("Erro ao recarregar contratos:", err);
+      setStatusError(
+        "O status foi atualizado, mas não foi possível recarregar a lista. Atualize a página.",
+      );
+    }
   }
 
   return (
@@ -176,6 +193,12 @@ export default function AdminContractsPage() {
             {saving ? "Criando..." : "Criar e preencher template"}
           </Button>
         </form>
+      )}
+
+      {statusError && (
+        <p role="alert" className="mt-6 text-sm text-red-600">
+          {statusError}
+        </p>
       )}
 
       {loading ? (

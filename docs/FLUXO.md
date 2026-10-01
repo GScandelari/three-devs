@@ -55,6 +55,57 @@ Lead → Proposta (time) → Cliente aceita?
                     Projetos, links, notas
 ```
 
+## Avisos ao cliente (portal)
+
+O cliente é avisado **dentro do portal**: um sininho no cabeçalho mostra a
+quantidade de avisos novos e abre a lista dos 20 mais recentes. Não há envio de
+e-mail nem de mensagens externas. Os avisos são temporários: somem ao serem
+visualizados ou, se não forem, 3 dias após a criação.
+
+| Acontecimento | Onde é gerado | Quando avisa |
+|---------------|---------------|--------------|
+| Mudança de status do projeto | Admin → Projeto | Se "Avisar o cliente" estiver marcado (padrão: marcado) |
+| Nova nota | Admin → Projeto | Se "Avisar o cliente" estiver marcado (padrão: marcado) |
+| Novo link | Admin → Projeto | Se "Avisar o cliente" estiver marcado (padrão: marcado) |
+| Contrato assinado | Admin → Contratos | Sempre |
+
+Regras de funcionamento:
+
+- O aviso é gravado na mesma transação da alteração que o originou: ou os dois
+  são salvos, ou nenhum. A transação relê o documento antes de gravar, então
+  clique duplo ou dois devs salvando ao mesmo tempo não geram aviso repetido.
+- Clicar no status que já está ativo não grava nem avisa.
+- **Visualizado = clicado:** clicar num aviso leva ao projeto (ou ao contrato) e
+  exclui o aviso. "Limpar avisos" exclui todos de uma vez. Só abrir o sininho
+  não exclui nada.
+- **Não visualizado = apagado após 3 dias:** cada aviso tem uma validade
+  (`expiresAt`, criação + 3 dias). A política de TTL do Firestore apaga os
+  vencidos (normalmente em até 24 horas depois do vencimento); o portal já
+  esconde o aviso assim que ele vence. Veja a configuração do TTL no README.
+- A validade é calculada pelo relógio do computador do dev. Um relógio errado
+  nunca impede a gravação: atrasado, o aviso só vence antes; adiantado, dura
+  mais (as regras aceitam validade de até 30 dias à frente).
+- A lista é recarregada ao entrar no portal, ao trocar de página e ao abrir o
+  sininho (não é em tempo real).
+- Não há histórico: depois de excluído, o aviso não existe mais para ninguém.
+
+Cada aviso é um documento em `notifications/{notificationId}`:
+
+```json
+{
+  "clientId": "<clientId>",
+  "type": "project_status",
+  "title": "App XYZ: status alterado para Em revisão",
+  "projectId": "<projectId>",
+  "createdAt": "2026-09-30T00:00:00.000Z",
+  "expiresAt": "<Timestamp: 2026-10-03T00:00:00.000Z>"
+}
+```
+
+`type` é um de `project_status`, `project_note`, `project_link` ou
+`contract_signed` (este usa `contractId` no lugar de `projectId`). `expiresAt`
+é um campo do tipo Timestamp (exigido pelo TTL do Firestore).
+
 ## Dados de exemplo (Firestore)
 
 Para testar o portal, crie manualmente no Firebase Console:

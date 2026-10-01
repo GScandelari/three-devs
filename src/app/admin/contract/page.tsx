@@ -41,6 +41,7 @@ function ContractEditorContent() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [statusError, setStatusError] = useState("");
   const [tab, setTab] = useState<"form" | "preview">("form");
 
   useEffect(() => {
@@ -119,9 +120,24 @@ function ContractEditorContent() {
   }
 
   async function handleStatus(status: ContractStatus) {
-    await updateContractStatus(contractId!, status);
-    const refreshed = await getContractById(contractId!);
-    setContract(refreshed);
+    setStatusError("");
+
+    try {
+      await updateContractStatus(contractId!, status);
+    } catch (err) {
+      console.error("Erro ao atualizar status do contrato:", err);
+      setStatusError("Não foi possível atualizar o status do contrato.");
+      return;
+    }
+
+    try {
+      setContract(await getContractById(contractId!));
+    } catch (err) {
+      console.error("Erro ao recarregar contrato:", err);
+      setStatusError(
+        "O status foi atualizado, mas não foi possível recarregar o contrato. Atualize a página.",
+      );
+    }
   }
 
   return (
@@ -172,6 +188,12 @@ function ContractEditorContent() {
           Lista de contratos
         </Button>
       </div>
+
+      {statusError && (
+        <p role="alert" className="mt-3 text-sm text-red-600">
+          {statusError}
+        </p>
+      )}
 
       <div className="mt-8 flex gap-2 border-b border-slate-200">
         <TabButton active={tab === "form"} onClick={() => setTab("form")}>

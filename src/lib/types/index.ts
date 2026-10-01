@@ -1,3 +1,5 @@
+import type { Timestamp } from "firebase/firestore";
+
 export type DeveloperId = string;
 
 export type ContractStatus = "draft" | "sent" | "signed" | "cancelled";
@@ -90,6 +92,26 @@ export interface Project {
   notes: ProjectNote[];
   createdAt: string;
   updatedAt: string;
+}
+
+export type ClientNotificationType =
+  | "project_status"
+  | "project_note"
+  | "project_link"
+  | "contract_signed";
+
+export interface ClientNotification {
+  id: string;
+  clientId: string;
+  type: ClientNotificationType;
+  title: string;
+  projectId?: string;
+  contractId?: string;
+  createdAt: string;
+  // Data de validade (3 dias após a criação). A política de TTL do Firestore
+  // apaga o aviso depois dela (normalmente em até 24 horas); o portal já o
+  // esconde a partir desse momento.
+  expiresAt: Timestamp;
 }
 
 export interface Developer {
