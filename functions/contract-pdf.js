@@ -1,4 +1,5 @@
 const PDFDocument = require("pdfkit");
+const { parseIsoDate } = require("./contract-validation");
 
 const COLORS = {
   ink: "#172033",
@@ -21,7 +22,7 @@ function value(input, fallback = "________________") {
 
 function formatDate(input) {
   const normalized = String(input ?? "").trim();
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized)) return value(normalized);
+  if (!parseIsoDate(normalized)) return value(normalized);
 
   const [year, month, day] = normalized.split("-");
   return `${day}/${month}/${year}`;

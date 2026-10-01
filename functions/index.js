@@ -4,6 +4,8 @@ const { initializeApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 const { getFirestore } = require("firebase-admin/firestore");
 const { buildContractPdf, safeFilename } = require("./contract-pdf");
+const { buildContractEmailHtml, makeIdempotencyKey } = require("./contract-email");
+const { getContractValidationProblem } = require("./contract-validation");
 
 initializeApp();
 
@@ -28,34 +30,8 @@ async function assertDeveloper(uid) {
 }
 
 function validateContract(contract) {
-  if (!contract) {
-    throw new HttpsError("not-found", "Contrato não encontrado.");
-  }
-
-  const template = contract.template || {};
-  const requiredFields = [
-    ["clientName", "nome do cliente"],
-    ["clientEmail", "e-mail do cliente"],
-    ["projectName", "nome do projeto"],
-    ["servicesDescription", "descrição dos serviços"],
-    ["totalValue", "valor total"],
-    ["commencementDate", "data de início"],
-    ["conclusionDate", "data de conclusão"],
-  ];
-  const missing = requiredFields
-    .filter(([key]) => !String(template[key] ?? "").trim())
-    .map(([, label]) => label);
-
-  if (missing.length) {
-    throw new HttpsError(
-      "failed-precondition",
-      `Preencha antes de gerar: ${missing.join(", ")}.`,
-    );
-  }
-
-  if (!String(template.clientEmail).includes("@")) {
-    throw new HttpsError("invalid-argument", "E-mail do cliente inválido.");
-  }
+  const problem = getContractValidationProblem(contract);
+  if (problem) throw new HttpsError(problem.code, problem.message);
 }
 
 async function loadContractForDeveloper(request) {
@@ -112,30 +88,39 @@ exports.sendContractEmail = onCall(
 
     const recipient = String(contract.template.clientEmail).trim().toLowerCase();
     const filename = safeFilename(contract.title);
+    const idempotencyKey = makeIdempotencyKey(
+      contract.id,
+      request.data?.requestId,
+    );
+    if (!idempotencyKey) {
+      throw new HttpsError("invalid-argument", "Identificador de envio inválido.");
+    }
+
+    const apiKey = resendApiKey.value().trim();
+    const sender = contractEmailFrom.value().trim();
+    if (!apiKey || !sender) {
+      console.error("Contract email configuration is incomplete.");
+      throw new HttpsError(
+        "failed-precondition",
+        "O envio de e-mail ainda não está configurado.",
+      );
+    }
 
     try {
       const pdf = await buildContractPdf(contract);
       const response = await fetch("https://api.resend.com/emails", {
         method: "POST",
+        signal: AbortSignal.timeout(20_000),
         headers: {
-          Authorization: `Bearer ${resendApiKey.value()}`,
+          Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
+          "Idempotency-Key": idempotencyKey,
         },
         body: JSON.stringify({
-          from: contractEmailFrom.value(),
+          from: sender,
           to: [recipient],
           subject: `Contrato para assinatura - ${contract.template.projectName}`,
-          html: `
-            <div style="font-family:Arial,sans-serif;color:#172033;line-height:1.6;max-width:620px;margin:0 auto">
-              <p style="color:#4f46e5;font-size:12px;font-weight:700;letter-spacing:1.4px">THREE DEVS</p>
-              <h1 style="font-size:24px;line-height:1.25;margin:12px 0">Seu contrato está pronto</h1>
-              <p>Olá, ${escapeHtml(contract.template.clientName)}.</p>
-              <p>Segue em anexo o contrato de prestação de serviços referente ao projeto <strong>${escapeHtml(contract.template.projectName)}</strong>.</p>
-              <p>Revise o documento e responda este e-mail caso tenha alguma dúvida. O acesso ao portal será liberado depois que a assinatura for confirmada.</p>
-              <p style="margin:28px 0"><a href="${escapeHtml(appUrl.value())}/login/" style="background:#4f46e5;color:#fff;text-decoration:none;border-radius:8px;padding:12px 18px;display:inline-block">Acessar a Three Devs</a></p>
-              <p style="color:#64748b;font-size:13px">Atenciosamente,<br>Equipe Three Devs</p>
-            </div>
-          `,
+          html: buildContractEmailHtml(contract, appUrl.value()),
           attachments: [
             {
               filename,
@@ -152,18 +137,29 @@ exports.sendContractEmail = onCall(
       }
 
       const result = await response.json();
-      const sentAt = new Date().toISOString();
-      await reference.update({
-        status: contract.status === "signed" ? "signed" : "sent",
-        sentAt: contract.sentAt || sentAt,
-        lastEmailSentAt: sentAt,
-        sentTo: recipient,
-        documentFileName: filename,
-        emailMessageId: result.id || "",
-        updatedAt: sentAt,
-      });
+      if (!result.id) {
+        console.error("Resend response did not include an email id.");
+        throw new Error("Resend response missing id");
+      }
 
-      return { ok: true, sentAt, sentTo: recipient };
+      const sentAt = new Date().toISOString();
+      let trackingUpdated = true;
+      try {
+        await reference.update({
+          status: contract.status === "signed" ? "signed" : "sent",
+          sentAt: contract.sentAt || sentAt,
+          lastEmailSentAt: sentAt,
+          sentTo: recipient,
+          documentFileName: filename,
+          emailMessageId: result.id,
+          updatedAt: sentAt,
+        });
+      } catch (error) {
+        trackingUpdated = false;
+        console.error("Contract sent but tracking update failed:", error);
+      }
+
+      return { ok: true, sentAt, sentTo: recipient, trackingUpdated };
     } catch (error) {
       console.error("sendContractEmail error:", error);
       throw new HttpsError(
@@ -173,15 +169,6 @@ exports.sendContractEmail = onCall(
     }
   },
 );
-
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
 
 exports.setClientPassword = onCall(
   { region: "us-central1" },

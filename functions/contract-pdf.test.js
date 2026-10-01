@@ -32,6 +32,7 @@ const template = {
 
 test("formata datas brasileiras sem deslocamento de fuso", () => {
   assert.equal(formatDate("2026-10-01"), "01/10/2026");
+  assert.equal(formatDate("2026-02-30"), "2026-02-30");
   assert.equal(formatDate("data livre"), "data livre");
 });
 

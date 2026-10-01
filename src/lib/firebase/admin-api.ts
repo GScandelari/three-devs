@@ -34,15 +34,25 @@ export async function generateContractPdf(
 
 export async function sendContractEmail(
   contractId: string,
-): Promise<{ ok: boolean; sentAt: string; sentTo: string }> {
+): Promise<{
+  ok: boolean;
+  sentAt: string;
+  sentTo: string;
+  trackingUpdated: boolean;
+}> {
   const functions = getFirebaseFunctions();
   if (!functions) throw new Error("Firebase não configurado");
 
   const callable = httpsCallable<
-    { contractId: string },
-    { ok: boolean; sentAt: string; sentTo: string }
+    { contractId: string; requestId: string },
+    {
+      ok: boolean;
+      sentAt: string;
+      sentTo: string;
+      trackingUpdated: boolean;
+    }
   >(functions, "sendContractEmail");
 
-  const result = await callable({ contractId });
+  const result = await callable({ contractId, requestId: crypto.randomUUID() });
   return result.data;
 }

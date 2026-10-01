@@ -55,18 +55,24 @@ function ContractEditorContent() {
     const id = contractId;
 
     async function load() {
-      const [c, cl, p] = await Promise.all([
-        getContractById(id),
-        getAllClients(),
-        getAllProjects(),
-      ]);
-      setContract(c);
-      setClients(cl);
-      setProjects(p);
-      if (c?.template) {
-        setTemplate({ ...EMPTY_CONTRACT_TEMPLATE, ...c.template });
+      try {
+        const [c, cl, p] = await Promise.all([
+          getContractById(id),
+          getAllClients(),
+          getAllProjects(),
+        ]);
+        setContract(c);
+        setClients(cl);
+        setProjects(p);
+        if (c?.template) {
+          setTemplate({ ...EMPTY_CONTRACT_TEMPLATE, ...c.template });
+        }
+      } catch (caught) {
+        console.error("Erro ao carregar contrato:", caught);
+        setError("Não foi possível carregar o contrato. Atualize a página.");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
 
     void load();
@@ -185,8 +191,14 @@ function ContractEditorContent() {
     try {
       await saveCurrentTemplate();
       const result = await sendContractEmail(contractId!);
-      await refreshContract();
-      setSuccess(`Contrato enviado para ${result.sentTo}.`);
+      if (result.trackingUpdated) {
+        await refreshContract();
+        setSuccess(`Contrato enviado para ${result.sentTo}.`);
+      } else {
+        setSuccess(
+          `Contrato enviado para ${result.sentTo}, mas o histórico não pôde ser atualizado. Não reenvie; atualize a página mais tarde.`,
+        );
+      }
     } catch (caught) {
       setError(getErrorMessage(caught, "Não foi possível enviar o contrato."));
     } finally {
