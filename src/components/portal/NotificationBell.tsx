@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -90,6 +90,24 @@ export function NotificationBell() {
   const count = notifications?.length ?? 0;
   const visible = (notifications ?? []).slice(0, MAX_VISIBLE);
 
+  // Mensagem exibida no lugar da lista: erro, carregando ou nenhum aviso.
+  let statusMessage: ReactNode = null;
+  if (loadError) {
+    statusMessage = (
+      <p role="alert" className="px-4 py-6 text-sm text-red-600">
+        Não foi possível carregar os avisos.
+      </p>
+    );
+  } else if (notifications === null) {
+    statusMessage = (
+      <p className="px-4 py-6 text-sm text-slate-500">Carregando...</p>
+    );
+  } else if (visible.length === 0) {
+    statusMessage = (
+      <p className="px-4 py-6 text-sm text-slate-500">Nenhum aviso novo.</p>
+    );
+  }
+
   function handleToggle() {
     if (!open) {
       setActionError("");
@@ -176,17 +194,7 @@ export function NotificationBell() {
             Avisos
           </h2>
 
-          {loadError ? (
-            <p role="alert" className="px-4 py-6 text-sm text-red-600">
-              Não foi possível carregar os avisos.
-            </p>
-          ) : notifications === null ? (
-            <p className="px-4 py-6 text-sm text-slate-500">Carregando...</p>
-          ) : visible.length === 0 ? (
-            <p className="px-4 py-6 text-sm text-slate-500">
-              Nenhum aviso novo.
-            </p>
-          ) : (
+          {statusMessage ?? (
             <ul className="max-h-96 overflow-y-auto">
               {visible.map((notification) => (
                 <li

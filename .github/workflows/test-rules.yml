@@ -22,6 +22,7 @@ jobs:
           node-version: "20"
           cache: "npm"
 
-      - run: npm ci
+      # --ignore-scripts: os testes não dependem de scripts de instalação dos pacotes.
+      - run: npm ci --ignore-scripts
 
       - run: npm run test:rules

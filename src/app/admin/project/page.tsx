@@ -212,7 +212,7 @@ function ProjectAdminContent() {
             checked={notifyStatus}
             onChange={(e) => setNotifyStatus(e.target.checked)}
           />
-          Avisar o cliente
+          <span>Avisar o cliente</span>
         </label>
         {statusError && (
           <p role="alert" className="mt-3 text-sm text-red-600">
@@ -246,7 +246,7 @@ function ProjectAdminContent() {
                 checked={notifyNote}
                 onChange={(e) => setNotifyNote(e.target.checked)}
               />
-              Avisar o cliente
+              <span>Avisar o cliente</span>
             </label>
             {noteError && (
               <p role="alert" className="text-sm text-red-600">
@@ -305,7 +305,7 @@ function ProjectAdminContent() {
                 checked={notifyLink}
                 onChange={(e) => setNotifyLink(e.target.checked)}
               />
-              Avisar o cliente
+              <span>Avisar o cliente</span>
             </label>
             {linkError && (
               <p role="alert" className="text-sm text-red-600">
