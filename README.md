@@ -118,7 +118,7 @@ Secrets necessários em **Settings → Secrets**:
 - [x] Painel admin
 - [ ] Geração de contrato (PDF + e-mail)
 - [ ] Assinatura digital (DocuSign, Clicksign)
-- [ ] Notificações ao cliente
+- [x] Notificações ao cliente
 - [x] Domínio customizado (serifalabs.com)
 
 ## Segurança
