@@ -90,6 +90,24 @@ um projeto `demo-*` que só existe no emulador (nenhum dado real é usado). Requ
 **Java 21 ou superior** instalado. O workflow `Testar regras do Firestore` roda os
 mesmos testes em todo pull request e em push na `main`.
 
+### PDF e envio de contratos
+
+Os PDFs são gerados pelas Cloud Functions e enviados como anexo pela Resend.
+Antes do primeiro deploy dessa funcionalidade:
+
+```bash
+npm run firebase -- functions:secrets:set RESEND_API_KEY
+npm run firebase -- deploy --only functions
+```
+
+Durante o deploy, informe `CONTRACT_EMAIL_FROM` no formato
+`Three Devs <contratos@seudominio.com>` e, se necessário, ajuste `APP_URL`.
+O domínio do remetente precisa estar verificado na Resend. Para publicar apenas
+o site depois disso, continue usando `npm run deploy:hosting`.
+
+Consulte o passo a passo completo em
+[docs/CONFIGURACAO-RESEND.md](docs/CONFIGURACAO-RESEND.md).
+
 ## Adicionar desenvolvedores
 
 1. Crie o usuário em **Firebase Auth** (Authentication → Add user)
@@ -116,7 +134,7 @@ Secrets necessários em **Settings → Secrets**:
 - [x] Landing page
 - [x] Portal do cliente
 - [x] Painel admin
-- [ ] Geração de contrato (PDF + e-mail)
+- [x] Geração de contrato (PDF + e-mail)
 - [ ] Assinatura digital (DocuSign, Clicksign)
 - [x] Notificações ao cliente
 - [x] Domínio customizado (serifalabs.com)

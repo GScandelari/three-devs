@@ -49,15 +49,21 @@ export default function AdminContractsPage() {
 
   useEffect(() => {
     async function loadOnMount() {
-      const [c, cl, p] = await Promise.all([
-        getAllContracts(),
-        getAllClients(),
-        getAllProjects(),
-      ]);
-      setContracts(c);
-      setClients(cl);
-      setProjects(p);
-      setLoading(false);
+      try {
+        const [c, cl, p] = await Promise.all([
+          getAllContracts(),
+          getAllClients(),
+          getAllProjects(),
+        ]);
+        setContracts(c);
+        setClients(cl);
+        setProjects(p);
+      } catch (caught) {
+        console.error("Erro ao carregar contratos:", caught);
+        setStatusError("Não foi possível carregar os contratos. Atualize a página.");
+      } finally {
+        setLoading(false);
+      }
     }
 
     void loadOnMount();
@@ -247,17 +253,8 @@ export default function AdminContractsPage() {
                         href={`/admin/contract?id=${contract.id}`}
                         className="rounded-md px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50"
                       >
-                        Preencher / ver
+                        {contract.status === "draft" ? "Preencher / enviar" : "Ver contrato"}
                       </Link>
-                      {contract.status === "draft" && (
-                        <ActionBtn
-                          onClick={() =>
-                            handleStatusChange(contract.id, "sent")
-                          }
-                        >
-                          Enviar
-                        </ActionBtn>
-                      )}
                       {(contract.status === "draft" ||
                         contract.status === "sent") && (
                         <ActionBtn
