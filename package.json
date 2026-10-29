@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "firebase": "firebase",
     "export": "next build",
     "deploy": "npm run export && firebase deploy",
     "deploy:hosting": "npm run export && firebase deploy --only hosting",
@@ -27,7 +28,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.3",
-    "firebase-tools": "15.30.0",
+    "firebase-tools": "15.34.2",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

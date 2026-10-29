@@ -129,6 +129,41 @@ Secrets necessários em **Settings → Secrets**:
 - `FIREBASE_SERVICE_ACCOUNT`
 - `NEXT_PUBLIC_FIREBASE_*` (6 variáveis)
 
+O workflow publica **apenas o hosting**: em produção a cada push na `main` e
+num canal de preview (válido por 3 dias) em cada PR. Assim, erros de build ou
+de permissão aparecem na PR, antes do merge.
+
+### Versões fixadas
+
+- A versão da CLI usada no CI é a de `firebase-tools` em `devDependencies` do
+  `package.json` (sem `^`). Para atualizar, rode
+  `npm install -D --save-exact firebase-tools@<versão>` e abra uma PR: o deploy
+  de preview valida a versão nova antes de ela chegar à produção.
+- A action `FirebaseExtended/action-hosting-deploy` está fixada por SHA de commit.
+
+### Papéis da conta de serviço (`FIREBASE_SERVICE_ACCOUNT`)
+
+No Google Cloud Console → **IAM**, a conta de serviço do deploy precisa de:
+
+- **Firebase Hosting Admin** (`roles/firebasehosting.admin`);
+- **Service Usage Consumer** (`roles/serviceusage.serviceUsageConsumer`):
+  exigido a partir do `firebase-tools` 15.34, que confere se a API do Hosting
+  está habilitada. Sem ele o deploy falha com
+  `403 Permission denied to get service [firebasehosting.googleapis.com]`.
+
+Mantenha também os papéis criados pelo `firebase init hosting:github`.
+
+### Functions e regras do Firestore (deploy manual)
+
+Cloud Functions e `firestore.rules` **não** são publicadas pelo CI. Quando uma
+mudança depender delas, publique-as **antes** do merge que leva o frontend ao ar:
+
+```powershell
+npm run firebase -- login
+npm ci --prefix functions
+npm run firebase -- deploy --only functions,firestore
+```
+
 ## Roadmap
 
 - [x] Landing page
