@@ -3,11 +3,16 @@ name: Deploy to Firebase
 on:
   push:
     branches: [main]
+  # PRs publicam num canal de preview: erros de build, de CLI ou de permissão
+  # da conta de serviço aparecem na PR, antes do merge.
+  pull_request:
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-24.04
+    # PRs de forks não recebem os secrets do repositório.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
 
     steps:
       - uses: actions/checkout@v7
@@ -28,9 +33,28 @@ jobs:
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
 
-      - uses: FirebaseExtended/action-hosting-deploy@v0
+      # Sem isto a action roda firebase-tools@latest, e uma versão nova da CLI
+      # pode quebrar o deploy sem nenhuma mudança no repositório. A versão vem
+      # do package.json, a mesma usada nos deploys manuais.
+      - id: firebase-tools
+        run: echo "version=$(node -p "require('./package.json').devDependencies['firebase-tools']")" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy de preview (PR)
+        if: github.event_name == 'pull_request'
+        uses: FirebaseExtended/action-hosting-deploy@500ac625ca2dd40cbd15f7659af953801858032a # v0.11.0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+          firebaseToolsVersion: ${{ steps.firebase-tools.outputs.version }}
+          expires: 3d
+
+      - name: Deploy em produção
+        if: github.event_name != 'pull_request'
+        uses: FirebaseExtended/action-hosting-deploy@500ac625ca2dd40cbd15f7659af953801858032a # v0.11.0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           channelId: live
           projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+          firebaseToolsVersion: ${{ steps.firebase-tools.outputs.version }}
