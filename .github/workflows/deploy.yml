@@ -13,6 +13,11 @@ jobs:
     runs-on: ubuntu-24.04
     # PRs de forks não recebem os secrets do repositório.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    # A action registra um check e comenta a URL do preview na PR.
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
 
     steps:
       - uses: actions/checkout@v7
