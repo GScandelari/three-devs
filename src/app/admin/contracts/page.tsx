@@ -136,8 +136,9 @@ export default function AdminContractsPage() {
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Contratos</h1>
           <p className="mt-1 text-slate-600">
-            Preencha o template, envie ao cliente e controle a assinatura. Sem
-            contrato assinado, o portal permanece bloqueado.
+            Preencha o template, envie ao cliente e controle a assinatura. O
+            cliente acessa o portal, mas o projeto só é liberado para ele depois
+            que o contrato vinculado for marcado como assinado.
           </p>
         </div>
         <Button onClick={() => setShowForm(!showForm)}>

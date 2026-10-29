@@ -173,11 +173,14 @@ export async function getContractsByClientId(
   return snapshot.docs.map((d) => mapDoc<Contract>(d));
 }
 
-export async function clientHasSignedContract(
-  clientId: string,
-): Promise<boolean> {
-  const contracts = await getContractsByClientId(clientId);
-  return contracts.some((c) => c.status === "signed");
+// O portal é liberado para todo cliente cadastrado; cada projeto só abre para
+// o cliente depois que um contrato vinculado a ele estiver assinado.
+export function getSignedProjectIds(contracts: Contract[]): Set<string> {
+  return new Set(
+    contracts
+      .filter((c) => c.status === "signed" && c.projectId)
+      .map((c) => c.projectId),
+  );
 }
 
 export async function getAllClients(): Promise<Client[]> {

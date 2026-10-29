@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { signOut } from "@/lib/firebase/auth";
 
 export function PortalGuard({ children }: { children: React.ReactNode }) {
   const { user, client, hasPortalAccess, loading, firebaseConfigured } =
@@ -24,8 +25,10 @@ export function PortalGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    // Logado sem cadastro de cliente: encerra a sessão sem dizer o motivo.
     if (!hasPortalAccess) {
-      router.replace("/login?pending=contract");
+      void signOut();
+      router.replace("/login");
     }
   }, [user, client, hasPortalAccess, loading, firebaseConfigured, router]);
 

@@ -4,7 +4,11 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { getProjectById } from "@/lib/firebase/firestore";
+import {
+  getContractsByClientId,
+  getProjectById,
+  getSignedProjectIds,
+} from "@/lib/firebase/firestore";
 import { ProjectStatusBadge } from "@/components/portal/ProjectCard";
 import type { Project } from "@/lib/types";
 
@@ -13,6 +17,7 @@ function ProjectDetailContent() {
   const projectId = searchParams.get("id");
   const { client } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
+  const [locked, setLocked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -20,11 +25,15 @@ function ProjectDetailContent() {
     if (!projectId || !client) return;
 
     async function loadProject() {
-      const data = await getProjectById(projectId!);
+      const [data, contracts] = await Promise.all([
+        getProjectById(projectId!),
+        getContractsByClientId(client!.id),
+      ]);
       if (!data || data.clientId !== client!.id) {
         setError("Projeto não encontrado.");
       } else {
         setProject(data);
+        setLocked(!getSignedProjectIds(contracts).has(data.id));
       }
       setLoading(false);
     }
@@ -51,6 +60,24 @@ function ProjectDetailContent() {
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-8 text-center">
         <p className="text-slate-600">{error || "Projeto não encontrado."}</p>
+        <Link
+          href="/portal"
+          className="mt-4 inline-block text-sm text-indigo-600 hover:text-indigo-500"
+        >
+          ← Voltar aos projetos
+        </Link>
+      </div>
+    );
+  }
+
+  if (locked) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-8 text-center">
+        <h1 className="text-lg font-semibold text-slate-900">{project.name}</h1>
+        <p className="mt-2 text-sm text-amber-800">
+          Este projeto será liberado após a assinatura do contrato. Os
+          contratos pendentes aparecem no início do portal.
+        </p>
         <Link
           href="/portal"
           className="mt-4 inline-block text-sm text-indigo-600 hover:text-indigo-500"

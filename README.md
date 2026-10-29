@@ -22,7 +22,7 @@ Startup de desenvolvimento de software — landing page, portal do cliente e pai
 | `/` | Público | Landing page |
 | `/login` | Público | Login (redireciona para admin ou portal) |
 | `/admin` | Desenvolvedores | Painel admin — clientes, projetos, contratos |
-| `/portal` | Clientes | Portal do cliente (requer contrato assinado) |
+| `/portal` | Clientes | Portal do cliente (projetos liberados após contrato assinado) |
 
 ## Fluxo comercial
 
@@ -31,7 +31,8 @@ Startup de desenvolvimento de software — landing page, portal do cliente e pai
 3. **Contrato** — No admin: criar contrato → enviar → marcar assinado
 4. **Portal** — Cliente acessa projetos, status, links e notas
 
-> Sem contrato assinado, o portal bloqueia o acesso.
+> Todo cliente cadastrado acessa o portal, mesmo sem projeto. Cada projeto só é
+> liberado depois que o contrato vinculado a ele é marcado como assinado.
 
 ## Setup local
 
