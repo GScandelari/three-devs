@@ -138,6 +138,8 @@ Secrets necessários em **Settings → Secrets**:
 - [ ] Assinatura digital (DocuSign, Clicksign)
 - [x] Notificações ao cliente
 - [x] Domínio customizado (serifalabs.com)
+- [ ] Remetente de e-mail com domínio verificado: hoje é o de teste da Resend e
+  não entrega aos clientes. Veja [CONFIGURACAO-RESEND.md](docs/CONFIGURACAO-RESEND.md#situação-atual-do-remetente-pendente)
 
 ## Segurança
 
