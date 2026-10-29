@@ -15,11 +15,7 @@ import {
   isSessionIdleExpired,
   markActivity,
 } from "@/lib/firebase/session";
-import {
-  getClientByEmail,
-  getDeveloperByUid,
-  clientHasSignedContract,
-} from "@/lib/firebase/firestore";
+import { getClientByEmail, getDeveloperByUid } from "@/lib/firebase/firestore";
 import type { Client, Developer } from "@/lib/types";
 import { isFirebaseConfigured } from "@/lib/firebase/config";
 
@@ -78,15 +74,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         setDeveloper(devData);
         setClient(clientData);
-
-        if (devData) {
-          setHasPortalAccess(true);
-        } else if (clientData) {
-          const hasAccess = await clientHasSignedContract(clientData.id);
-          setHasPortalAccess(hasAccess);
-        } else {
-          setHasPortalAccess(false);
-        }
+        // Todo cliente cadastrado entra no portal, mesmo sem projeto ou contrato
+        // assinado: os projetos ainda não assinados aparecem bloqueados.
+        setHasPortalAccess(Boolean(devData || clientData));
       } else {
         setDeveloper(null);
         setClient(null);
@@ -175,7 +165,8 @@ export async function resolvePostLoginRoute(
 
   const client = await getClientByEmail(email);
   if (client?.mustChangePassword) return "/change-password";
-  if (client && (await clientHasSignedContract(client.id))) return "/portal";
+  if (client) return "/portal";
 
-  return "/login?pending=contract";
+  // Conta no Firebase Auth sem cadastro em clients (ou com e-mail diferente).
+  return "/login?pending=account";
 }

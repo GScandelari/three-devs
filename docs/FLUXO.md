@@ -15,12 +15,21 @@
 
 ## Estados do contrato
 
-| Status | Descrição | Portal |
-|--------|-----------|--------|
+Todo cliente cadastrado acessa o portal, mesmo sem projeto. O status do
+contrato controla o **projeto** vinculado a ele:
+
+| Status | Descrição | Projeto no portal |
+|--------|-----------|-------------------|
 | `draft` | Rascunho interno | Bloqueado |
 | `sent` | Enviado ao cliente | Bloqueado |
 | `signed` | Assinado | **Liberado** |
 | `cancelled` | Cancelado | Bloqueado |
+
+Um projeto bloqueado aparece no portal só com o nome e o aviso "Disponível
+após a assinatura do contrato". Status, notas e links ficam ocultos. Um
+projeto sem contrato também fica bloqueado. Esse controle é feito na interface:
+as regras do Firestore continuam permitindo que o cliente leia os próprios
+projetos.
 
 ## Estados do projeto
 
@@ -50,7 +59,7 @@ Lead → Proposta (time) → Cliente aceita?
                               │
                          Onboarding
                               │
-                         Portal liberado
+                         Projeto liberado no portal
                               │
                     Projetos, links, notas
 ```

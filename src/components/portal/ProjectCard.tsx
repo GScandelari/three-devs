@@ -29,7 +29,29 @@ export function ProjectStatusBadge({ status }: { status: ProjectStatus }) {
   );
 }
 
-export function ProjectCard({ project }: { project: Project }) {
+export function ProjectCard({
+  project,
+  locked = false,
+}: {
+  project: Project;
+  locked?: boolean;
+}) {
+  if (locked) {
+    return (
+      <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6">
+        <div className="flex items-start justify-between gap-4">
+          <h3 className="font-semibold text-slate-700">{project.name}</h3>
+          <span className="inline-flex rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+            Bloqueado
+          </span>
+        </div>
+        <p className="mt-2 text-sm text-slate-500">
+          Disponível após a assinatura do contrato.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <Link
       href={`/portal/project?id=${project.id}`}

@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/Button";
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const pendingContract = searchParams.get("pending") === "contract";
+  const pendingAccount = searchParams.get("pending") === "account";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -65,9 +65,10 @@ function LoginForm() {
           </div>
         )}
 
-        {pendingContract && (
+        {pendingAccount && (
           <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-            Seu acesso ao portal será liberado após a assinatura do contrato.
+            Não encontramos um cadastro de cliente para este e-mail. Fale com a
+            equipe Three Devs para liberar seu acesso ao portal.
           </div>
         )}
 

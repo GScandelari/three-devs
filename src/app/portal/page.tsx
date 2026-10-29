@@ -3,7 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { getProjectsByClientId, getContractsByClientId } from "@/lib/firebase/firestore";
+import {
+  getProjectsByClientId,
+  getContractsByClientId,
+  getSignedProjectIds,
+} from "@/lib/firebase/firestore";
 import { ProjectCard } from "@/components/portal/ProjectCard";
 import type { Contract, Project } from "@/lib/types";
 
@@ -32,6 +36,8 @@ export default function PortalPage() {
   if (loading) {
     return <p className="text-sm text-slate-500">Carregando projetos...</p>;
   }
+
+  const signedProjectIds = getSignedProjectIds(contracts);
 
   return (
     <div>
@@ -103,7 +109,11 @@ export default function PortalPage() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {projects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
+              <ProjectCard
+                key={project.id}
+                project={project}
+                locked={!signedProjectIds.has(project.id)}
+              />
             ))}
           </div>
         )}

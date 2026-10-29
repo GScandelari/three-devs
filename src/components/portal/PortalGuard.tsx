@@ -25,7 +25,7 @@ export function PortalGuard({ children }: { children: React.ReactNode }) {
     }
 
     if (!hasPortalAccess) {
-      router.replace("/login?pending=contract");
+      router.replace("/login?pending=account");
     }
   }, [user, client, hasPortalAccess, loading, firebaseConfigured, router]);
 
