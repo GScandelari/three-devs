@@ -19,50 +19,11 @@ A chave da Resend nunca é enviada ao navegador e não deve ser adicionada ao
 
 ## Situação atual do remetente (pendente)
 
-> **Atualizado em 29/10/2026.** Enquanto esta seção existir, os e-mails
-> provavelmente **não chegam aos clientes**.
-
-Em produção, todas as funções de e-mail (`sendContractEmail`,
-`sendClientWelcome` e `requestPasswordReset`) usam:
-
-```text
-CONTRACT_EMAIL_FROM="Three Devs <onboarding@resend.dev>"
-APP_URL=https://three-devs.web.app
-```
-
-`onboarding@resend.dev` é o **remetente de teste** da Resend. Ele só entrega
-mensagens para o e-mail do dono da conta Resend. Para qualquer outro
-destinatário a Resend recusa o envio, e o painel mostra "Não foi possível
-enviar...". Isso vale para contratos, boas-vindas e redefinição de senha.
-
-### Por que não usar `serifa.labs@gmail.com` como remetente
-
-O endereço desejado para contato é `serifa.labs@gmail.com`, mas ele **não pode
-ser o remetente**. A Resend só envia de domínios verificados por registros DNS
-(SPF/DKIM), e ninguém além do Google consegue verificar `gmail.com`. Com esse
-remetente, a Resend recusaria todos os envios.
-
-### Como resolver
-
-1. Verificar o domínio `serifalabs.com` (já usado pelo site) na Resend, seguindo
-   a seção [2. Adicionar e verificar o domínio](#2-adicionar-e-verificar-o-domínio).
-2. Definir um remetente desse domínio, por exemplo
-   `Serifa Labs <contato@serifalabs.com>`, em `functions/.env.three-devs`.
-3. (Opcional) Fazer as respostas dos clientes irem para `serifa.labs@gmail.com`.
-   Isso exige adicionar o campo `reply_to` nas chamadas à Resend em
-   `functions/index.js`, o que ainda **não está implementado**.
-4. Publicar as funções de novo:
-   `npm run firebase -- deploy --only functions`.
-5. Testar o envio para um endereço que não seja o dono da conta Resend e,
-   depois, apagar esta seção.
-
-### Onde o valor fica
-
-Os parâmetros ficam em `functions/.env.three-devs`. O arquivo é ignorado pelo
-Git (`.env*`), então cada máquina que fizer deploy precisa criá-lo. Se ele não
-existir, a CLI pede os valores e um deploy com `--non-interactive` falha. Para
-saber o valor publicado, abra a função no Google Cloud Console → **Cloud Run
-functions** → *sendContractEmail* → **Variáveis e secrets**.
+> **Atenção:** o remetente em produção ainda é o de teste da Resend
+> (`onboarding@resend.dev`), que só entrega ao dono da conta. Os e-mails
+> provavelmente **não chegam aos clientes**. Detalhes, motivo de não usar
+> `serifa.labs@gmail.com` como remetente e passos para resolver estão em
+> [PENDENCIAS-TECNICAS.md, item 1](PENDENCIAS-TECNICAS.md#1-remetente-dos-e-mails-não-entrega-aos-clientes).
 
 ## Pré-requisitos
 
@@ -358,7 +319,7 @@ Confirme que:
 - o remetente não é de um provedor público (`gmail.com`, `outlook.com` etc.),
   porque esses domínios não podem ser verificados;
 - o remetente não é `onboarding@resend.dev`, que só entrega ao dono da conta
-  Resend (veja [Situação atual do remetente](#situação-atual-do-remetente-pendente)).
+  Resend (veja [PENDENCIAS-TECNICAS.md](PENDENCIAS-TECNICAS.md#1-remetente-dos-e-mails-não-entrega-aos-clientes)).
 
 ### Erro de autenticação da Resend
 

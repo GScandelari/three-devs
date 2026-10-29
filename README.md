@@ -139,7 +139,11 @@ Secrets necessários em **Settings → Secrets**:
 - [x] Notificações ao cliente
 - [x] Domínio customizado (serifalabs.com)
 - [ ] Remetente de e-mail com domínio verificado: hoje é o de teste da Resend e
-  não entrega aos clientes. Veja [CONFIGURACAO-RESEND.md](docs/CONFIGURACAO-RESEND.md#situação-atual-do-remetente-pendente)
+  não entrega aos clientes. Veja [PENDENCIAS-TECNICAS.md](docs/PENDENCIAS-TECNICAS.md)
+
+## Pendências técnicas
+
+Itens conhecidos que precisam de verificação ou correção, com contexto e critério de conclusão: [docs/PENDENCIAS-TECNICAS.md](docs/PENDENCIAS-TECNICAS.md).
 
 ## Segurança
 
