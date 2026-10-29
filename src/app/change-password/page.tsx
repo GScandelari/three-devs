@@ -60,7 +60,8 @@ export default function ChangePasswordPage() {
         window.location.href = "/admin";
       } else if (client && user?.email) {
         await clearClientMustChangePassword(client.id);
-        window.location.href = await resolvePostLoginRoute(user.uid, user.email);
+        window.location.href =
+          (await resolvePostLoginRoute(user.uid, user.email)) ?? "/login";
       }
     } catch {
       setError("Não foi possível alterar a senha. Verifique a senha atual.");

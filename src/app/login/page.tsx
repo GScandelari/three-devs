@@ -1,9 +1,9 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "@/lib/firebase/auth";
+import { useRouter } from "next/navigation";
+import { signIn, signOut } from "@/lib/firebase/auth";
 import {
   clearSessionExpiredFlag,
   wasSessionExpired,
@@ -12,37 +12,50 @@ import { resolvePostLoginRoute } from "@/contexts/AuthContext";
 import { getFirebaseAuth } from "@/lib/firebase/config";
 import { Button } from "@/components/ui/Button";
 
+// Mesma mensagem para senha errada e para conta sem cadastro de cliente: a tela
+// não confirma se o e-mail existe.
+const INVALID_CREDENTIALS =
+  "Não foi possível entrar. Verifique suas credenciais.";
+
+// O flag de sessão expirada não muda enquanto a tela está aberta.
+const subscribeNoop = () => () => {};
+
 function LoginForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const pendingAccount = searchParams.get("pending") === "account";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  // Este formulário só renderiza no navegador (useSearchParams sob Suspense).
-  const [sessionExpired] = useState(wasSessionExpired);
-
-  useEffect(() => {
-    clearSessionExpiredFlag();
-  }, []);
+  // A página é pré-renderizada no build, sem sessionStorage: no servidor o
+  // aviso nunca aparece; no navegador lê o flag depois da hidratação.
+  const sessionExpired = useSyncExternalStore(
+    subscribeNoop,
+    wasSessionExpired,
+    () => false,
+  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
+    clearSessionExpiredFlag();
 
     try {
       await signIn(email, password);
       const user = getFirebaseAuth()?.currentUser;
-      if (user?.email) {
-        router.push(await resolvePostLoginRoute(user.uid, user.email));
-      } else {
-        router.push("/portal");
+      const route = user?.email
+        ? await resolvePostLoginRoute(user.uid, user.email)
+        : null;
+      if (!route) {
+        // Conta sem cadastro de cliente: mesma resposta de senha errada.
+        await signOut();
+        setError(INVALID_CREDENTIALS);
+        return;
       }
+      router.push(route);
     } catch {
-      setError("E-mail ou senha inválidos.");
+      setError(INVALID_CREDENTIALS);
     } finally {
       setLoading(false);
     }
@@ -62,13 +75,6 @@ function LoginForm() {
           <div className="mb-6 rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-700">
             Sua sessão foi encerrada após 15 minutos de inatividade. Entre
             novamente para continuar.
-          </div>
-        )}
-
-        {pendingAccount && (
-          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-            Não encontramos um cadastro de cliente para este e-mail. Fale com a
-            equipe Three Devs para liberar seu acesso ao portal.
           </div>
         )}
 

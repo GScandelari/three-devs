@@ -153,10 +153,13 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
+// null: conta no Firebase Auth sem cadastro em clients (ou com e-mail
+// diferente). Quem chama encerra a sessão e responde como credencial inválida,
+// para não revelar que a conta existe.
 export async function resolvePostLoginRoute(
   uid: string,
   email: string,
-): Promise<string> {
+): Promise<string | null> {
   const developer = await getDeveloperByUid(uid);
   if (developer) {
     if (developer.mustChangePassword) return "/change-password";
@@ -167,6 +170,5 @@ export async function resolvePostLoginRoute(
   if (client?.mustChangePassword) return "/change-password";
   if (client) return "/portal";
 
-  // Conta no Firebase Auth sem cadastro em clients (ou com e-mail diferente).
-  return "/login?pending=account";
+  return null;
 }
