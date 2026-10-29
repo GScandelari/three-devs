@@ -397,3 +397,62 @@ describe("regras existentes continuam funcionando", () => {
     );
   });
 });
+
+describe("troca de senha obrigatória do cliente", () => {
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await updateDoc(doc(ctx.firestore(), "clients/cA"), {
+        mustChangePassword: true,
+      });
+    });
+  });
+
+  test("cliente limpa o próprio mustChangePassword", async () => {
+    await assertSucceeds(
+      updateDoc(doc(clientA, "clients/cA"), { mustChangePassword: false }),
+    );
+  });
+
+  test("cliente não reativa o flag nem altera outros campos", async () => {
+    await assertFails(
+      updateDoc(doc(clientA, "clients/cA"), { mustChangePassword: true }),
+    );
+    await assertFails(
+      updateDoc(doc(clientA, "clients/cA"), {
+        mustChangePassword: false,
+        onboardingComplete: true,
+      }),
+    );
+    await assertFails(updateDoc(doc(clientA, "clients/cA"), { name: "Outro" }));
+  });
+
+  test("cliente não altera o cadastro de outro cliente", async () => {
+    await assertFails(
+      updateDoc(doc(clientB, "clients/cA"), { mustChangePassword: false }),
+    );
+  });
+
+  test("desenvolvedor edita o perfil do cliente", async () => {
+    await assertSucceeds(
+      updateDoc(doc(dev, "clients/cA"), { name: "Cliente A2", company: "ACME" }),
+    );
+  });
+});
+
+describe("links de senha (passwordTokens)", () => {
+  test("ninguém lê nem grava pelo navegador, nem desenvolvedor", async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "passwordTokens/uA"), {
+        tokenHash: "x",
+        purpose: "reset",
+      });
+    });
+
+    for (const db of [dev, clientA, anon]) {
+      await assertFails(getDoc(doc(db, "passwordTokens/uA")));
+      await assertFails(
+        setDoc(doc(db, "passwordTokens/uA"), { tokenHash: "y", purpose: "reset" }),
+      );
+    }
+  });
+});

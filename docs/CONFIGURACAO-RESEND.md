@@ -192,8 +192,17 @@ O deploy deve publicar ou atualizar estas funções:
 
 - `generateContractPdf`;
 - `sendContractEmail`;
-- `setClientPassword`;
+- `sendClientWelcome` (e-mail de boas-vindas com link para definir a senha, válido por 72 horas);
+- `requestPasswordReset` ("Esqueci minha senha": link de redefinição válido por 30 minutos);
+- `completePasswordReset` (salva a senha escolhida pelo link);
+- `setClientPassword` (senha temporária definida pelo admin);
 - `provisionDeveloper`.
+
+Os e-mails de boas-vindas e de redefinição usam o mesmo `RESEND_API_KEY` e o
+mesmo remetente `CONTRACT_EMAIL_FROM` dos contratos. Os links ficam na coleção
+`passwordTokens` (um documento por usuário, só o hash do token): cada novo link
+substitui o anterior. Opcionalmente, crie uma política de TTL do Firestore no
+campo `expiresAt` dessa coleção para apagar links vencidos que nunca foram usados.
 
 Depois de alterar `RESEND_API_KEY`, sempre faça um novo deploy da função que
 usa o secret. Para publicar apenas o envio de e-mail:

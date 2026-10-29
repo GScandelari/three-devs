@@ -2,18 +2,65 @@ import { httpsCallable } from "firebase/functions";
 import { getFirebaseFunctions } from "./config";
 
 export async function setClientPassword(
-  email: string,
+  clientId: string,
   password: string,
+  mustChangePassword: boolean,
 ): Promise<{ ok: boolean; created: boolean }> {
   const functions = getFirebaseFunctions();
   if (!functions) throw new Error("Firebase não configurado");
 
   const callable = httpsCallable<
-    { email: string; password: string },
+    { clientId: string; password: string; mustChangePassword: boolean },
     { ok: boolean; created: boolean }
   >(functions, "setClientPassword");
 
-  const result = await callable({ email, password });
+  const result = await callable({ clientId, password, mustChangePassword });
+  return result.data;
+}
+
+export async function sendClientWelcome(
+  clientId: string,
+): Promise<{ ok: boolean; sentAt: string }> {
+  const functions = getFirebaseFunctions();
+  if (!functions) throw new Error("Firebase não configurado");
+
+  const callable = httpsCallable<
+    { clientId: string },
+    { ok: boolean; sentAt: string }
+  >(functions, "sendClientWelcome");
+
+  const result = await callable({ clientId });
+  return result.data;
+}
+
+export async function requestPasswordReset(
+  email: string,
+): Promise<{ ok: boolean }> {
+  const functions = getFirebaseFunctions();
+  if (!functions) throw new Error("Firebase não configurado");
+
+  const callable = httpsCallable<{ email: string }, { ok: boolean }>(
+    functions,
+    "requestPasswordReset",
+  );
+
+  const result = await callable({ email });
+  return result.data;
+}
+
+export async function completePasswordReset(
+  token: string,
+  password: string,
+): Promise<{ ok: boolean; email?: string }> {
+  const functions = getFirebaseFunctions();
+  if (!functions) throw new Error("Firebase não configurado");
+
+  const callable = httpsCallable<
+    { token: string; password: string },
+    { ok: boolean; email?: string }
+  >(functions, "completePasswordReset");
+
+  const result = await callable({ token, password });
   return result.data;
 }
 

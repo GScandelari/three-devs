@@ -25,7 +25,19 @@ service cloud.firestore {
 
     match /clients/{clientId} {
       allow read: if isDeveloper() || isOwnClient();
-      allow create, update, delete: if isDeveloper();
+      allow create, delete: if isDeveloper();
+      // Cliente pode limpar apenas o flag mustChangePassword no próprio cadastro,
+      // depois de trocar a senha temporária definida pelo admin.
+      allow update: if isDeveloper()
+        || (isOwnClient()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["mustChangePassword"])
+            && request.resource.data.mustChangePassword == false);
+    }
+
+    // Links de definição/redefinição de senha. Só as Cloud Functions (Admin SDK)
+    // acessam; o navegador nunca lê nem grava.
+    match /passwordTokens/{uid} {
+      allow read, write: if false;
     }
 
     match /contracts/{contractId} {

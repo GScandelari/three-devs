@@ -4,10 +4,25 @@ import { useEffect, useState } from "react";
 import {
   createClient,
   getAllClients,
+  updateClientProfile,
 } from "@/lib/firebase/firestore";
-import { setClientPassword } from "@/lib/firebase/admin-api";
+import { sendClientWelcome, setClientPassword } from "@/lib/firebase/admin-api";
 import { Button } from "@/components/ui/Button";
 import type { Client } from "@/lib/types";
+
+const EMPTY_EDIT_FORM = {
+  name: "",
+  company: "",
+  password: "",
+  mustChangePassword: true,
+};
+
+function functionErrorMessage(err: unknown, fallback: string) {
+  const message = err instanceof Error ? err.message : fallback;
+  return message.includes("functions/") || message.includes("not-found")
+    ? "Cloud Function indisponível. Faça o deploy das functions ou use o Firebase Console."
+    : message;
+}
 
 export default function AdminClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
@@ -17,16 +32,16 @@ export default function AdminClientsPage() {
     name: "",
     email: "",
     company: "",
-    password: "",
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [saving, setSaving] = useState(false);
-  const [passwordClient, setPasswordClient] = useState<Client | null>(null);
-  const [newPassword, setNewPassword] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-  const [passwordSuccess, setPasswordSuccess] = useState("");
-  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [editClient, setEditClient] = useState<Client | null>(null);
+  const [editForm, setEditForm] = useState(EMPTY_EDIT_FORM);
+  const [editError, setEditError] = useState("");
+  const [editSuccess, setEditSuccess] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+  const [welcomeSending, setWelcomeSending] = useState(false);
 
   async function loadClients() {
     setClients(await getAllClients());
@@ -42,71 +57,122 @@ export default function AdminClientsPage() {
     void loadClientsOnMount();
   }, []);
 
+  function openEdit(client: Client) {
+    setEditClient(client);
+    setEditForm({
+      ...EMPTY_EDIT_FORM,
+      name: client.name,
+      company: client.company ?? "",
+    });
+    setEditError("");
+    setEditSuccess("");
+  }
+
+  function closeEdit() {
+    setEditClient(null);
+    setEditForm(EMPTY_EDIT_FORM);
+    setEditError("");
+    setEditSuccess("");
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setSuccess("");
     setSaving(true);
 
+    let clientId: string;
     try {
-      await createClient({
+      clientId = await createClient({
         name: form.name,
         email: form.email,
         company: form.company,
       });
-
-      if (form.password) {
-        await setClientPassword(form.email, form.password);
-      }
-
-      setSuccess(
-        form.password
-          ? "Cliente e conta de acesso criados com sucesso."
-          : "Cliente criado. Defina a senha depois com 'Editar senha'.",
-      );
-      setForm({ name: "", email: "", company: "", password: "" });
-      setShowForm(false);
-      await loadClients();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao criar cliente.");
-    } finally {
       setSaving(false);
+      return;
+    }
+
+    try {
+      await sendClientWelcome(clientId);
+      setSuccess(
+        "Cliente criado. O e-mail de boas-vindas com o link para definir a senha foi enviado.",
+      );
+    } catch (err) {
+      setSuccess(
+        `Cliente criado, mas o e-mail de boas-vindas não foi enviado (${functionErrorMessage(err, "erro desconhecido")}). Use "Editar" → "Reenviar boas-vindas".`,
+      );
+    }
+
+    setForm({ name: "", email: "", company: "" });
+    setShowForm(false);
+    await loadClients();
+    setSaving(false);
+  }
+
+  async function handleEditSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editClient) return;
+
+    setEditError("");
+    setEditSuccess("");
+    setEditSaving(true);
+
+    try {
+      const name = editForm.name.trim();
+      const company = editForm.company.trim();
+      if (name !== editClient.name || company !== (editClient.company ?? "")) {
+        await updateClientProfile(editClient.id, { name, company });
+      }
+
+      let message = "Perfil atualizado.";
+      if (editForm.password) {
+        const result = await setClientPassword(
+          editClient.id,
+          editForm.password,
+          editForm.mustChangePassword,
+        );
+        message = [
+          result.created ? "Conta criada e senha definida." : "Senha atualizada.",
+          editForm.mustChangePassword
+            ? "O cliente precisará trocá-la no próximo acesso."
+            : "",
+        ]
+          .filter(Boolean)
+          .join(" ");
+      }
+
+      setEditSuccess(message);
+      setEditForm((current) => ({ ...current, password: "" }));
+      await loadClients();
+      setTimeout(closeEdit, 1500);
+    } catch (err) {
+      setEditError(functionErrorMessage(err, "Erro ao salvar o cliente."));
+    } finally {
+      setEditSaving(false);
     }
   }
 
-  async function handlePasswordSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!passwordClient) return;
+  async function handleResendWelcome() {
+    if (!editClient) return;
 
-    setPasswordError("");
-    setPasswordSuccess("");
-    setPasswordSaving(true);
+    setEditError("");
+    setEditSuccess("");
+    setWelcomeSending(true);
 
     try {
-      const result = await setClientPassword(
-        passwordClient.email,
-        newPassword,
+      await sendClientWelcome(editClient.id);
+      setEditSuccess(
+        "E-mail de boas-vindas reenviado. O link anterior deixou de funcionar.",
       );
-      setPasswordSuccess(
-        result.created
-          ? "Conta criada e senha definida."
-          : "Senha atualizada com sucesso.",
-      );
-      setNewPassword("");
-      setTimeout(() => {
-        setPasswordClient(null);
-        setPasswordSuccess("");
-      }, 1500);
+      await loadClients();
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Erro ao atualizar senha.";
-      setPasswordError(
-        message.includes("functions/") || message.includes("not-found")
-          ? "Cloud Function indisponível. Faça o deploy das functions ou use o Firebase Console."
-          : message,
+      setEditError(
+        functionErrorMessage(err, "Erro ao enviar o e-mail de boas-vindas."),
       );
     } finally {
-      setPasswordSaving(false);
+      setWelcomeSending(false);
     }
   }
 
@@ -124,12 +190,20 @@ export default function AdminClientsPage() {
         </Button>
       </div>
 
+      {success && !showForm && (
+        <p className="mt-4 text-sm text-emerald-600">{success}</p>
+      )}
+
       {showForm && (
         <form
           onSubmit={handleSubmit}
           className="mt-6 rounded-xl border border-slate-200 bg-white p-6"
         >
           <h2 className="font-medium text-slate-900">Cadastrar cliente</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            O cliente recebe um e-mail de boas-vindas com um link para definir
+            a própria senha (válido por 72 horas).
+          </p>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <Field
               label="Nome"
@@ -149,61 +223,107 @@ export default function AdminClientsPage() {
               value={form.company}
               onChange={(v) => setForm({ ...form, company: v })}
             />
-            <Field
-              label="Senha inicial (portal)"
-              type="password"
-              value={form.password}
-              onChange={(v) => setForm({ ...form, password: v })}
-              placeholder="Opcional — cria conta Firebase Auth"
-            />
           </div>
           {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
-          {success && <p className="mt-3 text-sm text-emerald-600">{success}</p>}
           <Button type="submit" disabled={saving} className="mt-4">
-            {saving ? "Salvando..." : "Criar cliente"}
+            {saving ? "Salvando..." : "Criar cliente e enviar boas-vindas"}
           </Button>
         </form>
       )}
 
-      {passwordClient && (
+      {editClient && (
         <form
-          onSubmit={handlePasswordSubmit}
+          onSubmit={handleEditSubmit}
           className="mt-6 rounded-xl border border-indigo-200 bg-indigo-50/50 p-6"
         >
           <h2 className="font-medium text-slate-900">
-            Editar senha — {passwordClient.name}
+            Editar cliente — {editClient.name}
           </h2>
-          <p className="mt-1 text-sm text-slate-600">{passwordClient.email}</p>
-          <div className="mt-4 max-w-sm">
+          <p className="mt-1 text-sm text-slate-600">
+            {editClient.email}
+            {editClient.welcomeEmailSentAt && (
+              <>
+                {" "}
+                · boas-vindas enviadas em{" "}
+                {new Date(editClient.welcomeEmailSentAt).toLocaleString("pt-BR")}
+              </>
+            )}
+          </p>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <Field
-              label="Nova senha"
-              type="password"
-              value={newPassword}
-              onChange={setNewPassword}
+              label="Nome"
+              value={editForm.name}
+              onChange={(v) => setEditForm({ ...editForm, name: v })}
               required
-              placeholder="Mínimo 6 caracteres"
+            />
+            <Field
+              label="Empresa"
+              value={editForm.company}
+              onChange={(v) => setEditForm({ ...editForm, company: v })}
             />
           </div>
-          {passwordError && (
-            <p className="mt-3 text-sm text-red-600">{passwordError}</p>
+
+          <div className="mt-6 border-t border-indigo-100 pt-4">
+            <h3 className="text-sm font-medium text-slate-900">
+              Senha temporária
+            </h3>
+            <p className="mt-1 text-sm text-slate-500">
+              Opcional. Deixe em branco para manter a senha atual. Definir uma
+              senha encerra as sessões abertas do cliente e invalida links de
+              senha pendentes.
+            </p>
+            <div className="mt-3 max-w-sm">
+              <Field
+                label="Nova senha"
+                type="password"
+                value={editForm.password}
+                onChange={(v) => setEditForm({ ...editForm, password: v })}
+                placeholder="Mínimo 6 caracteres"
+              />
+            </div>
+            <label className="mt-3 flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={editForm.mustChangePassword}
+                onChange={(e) =>
+                  setEditForm({
+                    ...editForm,
+                    mustChangePassword: e.target.checked,
+                  })
+                }
+                className="h-4 w-4 rounded border-slate-300 text-indigo-600"
+              />
+              Exigir que o cliente troque a senha no próximo acesso
+            </label>
+          </div>
+
+          {editError && (
+            <p className="mt-3 text-sm text-red-600">{editError}</p>
           )}
-          {passwordSuccess && (
-            <p className="mt-3 text-sm text-emerald-600">{passwordSuccess}</p>
+          {editSuccess && (
+            <p className="mt-3 text-sm text-emerald-600">{editSuccess}</p>
           )}
-          <div className="mt-4 flex gap-3">
-            <Button type="submit" disabled={passwordSaving || newPassword.length < 6}>
-              {passwordSaving ? "Salvando..." : "Salvar senha"}
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Button
+              type="submit"
+              disabled={
+                editSaving ||
+                !editForm.name.trim() ||
+                (editForm.password.length > 0 && editForm.password.length < 6)
+              }
+            >
+              {editSaving ? "Salvando..." : "Salvar"}
             </Button>
             <Button
               type="button"
               variant="secondary"
-              onClick={() => {
-                setPasswordClient(null);
-                setNewPassword("");
-                setPasswordError("");
-                setPasswordSuccess("");
-              }}
+              disabled={welcomeSending}
+              onClick={handleResendWelcome}
             >
+              {welcomeSending ? "Enviando..." : "Reenviar boas-vindas"}
+            </Button>
+            <Button type="button" variant="ghost" onClick={closeEdit}>
               Cancelar
             </Button>
           </div>
@@ -236,6 +356,11 @@ export default function AdminClientsPage() {
                 >
                   <td className="px-4 py-3 font-medium text-slate-900">
                     {client.name}
+                    {client.mustChangePassword && (
+                      <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                        Troca de senha pendente
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-slate-600">{client.email}</td>
                   <td className="px-4 py-3 text-slate-600">
@@ -255,15 +380,10 @@ export default function AdminClientsPage() {
                   <td className="px-4 py-3">
                     <button
                       type="button"
-                      onClick={() => {
-                        setPasswordClient(client);
-                        setNewPassword("");
-                        setPasswordError("");
-                        setPasswordSuccess("");
-                      }}
+                      onClick={() => openEdit(client)}
                       className="text-xs font-medium text-indigo-600 hover:text-indigo-500"
                     >
-                      Editar senha
+                      Editar
                     </button>
                   </td>
                 </tr>
