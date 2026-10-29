@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 
 export function PortalGuard({ children }: { children: React.ReactNode }) {
-  const { user, hasPortalAccess, loading, firebaseConfigured } = useAuth();
+  const { user, client, hasPortalAccess, loading, firebaseConfigured } =
+    useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -18,10 +19,15 @@ export function PortalGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    if (client?.mustChangePassword) {
+      router.replace("/change-password");
+      return;
+    }
+
     if (!hasPortalAccess) {
       router.replace("/login?pending=contract");
     }
-  }, [user, hasPortalAccess, loading, firebaseConfigured, router]);
+  }, [user, client, hasPortalAccess, loading, firebaseConfigured, router]);
 
   if (loading) {
     return (

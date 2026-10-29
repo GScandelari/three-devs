@@ -104,6 +104,12 @@ export async function clearMustChangePassword(uid: string) {
   });
 }
 
+export async function clearClientMustChangePassword(clientId: string) {
+  await updateDoc(doc(dbOrThrow(), "clients", clientId), {
+    mustChangePassword: false,
+  });
+}
+
 export async function getClientByEmail(email: string): Promise<Client | null> {
   const db = getFirebaseDb();
   if (!db) return null;
@@ -211,7 +217,8 @@ export async function createClient(data: {
   const now = new Date().toISOString();
 
   await setDoc(doc(db, "clients", id), {
-    email: data.email,
+    // O Firebase Auth guarda o e-mail em minúsculas; o login busca o cliente por ele.
+    email: data.email.trim().toLowerCase(),
     name: data.name,
     company: data.company ?? "",
     createdAt: now,
@@ -219,6 +226,16 @@ export async function createClient(data: {
   });
 
   return id;
+}
+
+export async function updateClientProfile(
+  clientId: string,
+  data: { name: string; company: string },
+) {
+  await updateDoc(doc(dbOrThrow(), "clients", clientId), {
+    name: data.name,
+    company: data.company,
+  });
 }
 
 export async function getContractById(

@@ -4,13 +4,20 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { changeOwnPassword } from "@/lib/firebase/auth";
-import { clearMustChangePassword } from "@/lib/firebase/firestore";
-import { useAuth } from "@/contexts/AuthContext";
+import {
+  clearClientMustChangePassword,
+  clearMustChangePassword,
+} from "@/lib/firebase/firestore";
+import { resolvePostLoginRoute, useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/Button";
 
 export default function ChangePasswordPage() {
   const router = useRouter();
-  const { user, developer, loading, firebaseConfigured } = useAuth();
+  const { user, developer, client, loading, firebaseConfigured } = useAuth();
+  // Desenvolvedor provisionado ou cliente com senha temporária definida pelo admin.
+  const mustChange = developer
+    ? Boolean(developer.mustChangePassword)
+    : Boolean(client?.mustChangePassword);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -23,14 +30,10 @@ export default function ChangePasswordPage() {
       router.replace("/login");
       return;
     }
-    if (!developer) {
-      router.replace("/portal");
-      return;
+    if (!mustChange) {
+      router.replace(developer ? "/admin" : "/portal");
     }
-    if (!developer.mustChangePassword) {
-      router.replace("/admin");
-    }
-  }, [user, developer, loading, firebaseConfigured, router]);
+  }, [user, developer, mustChange, loading, firebaseConfigured, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -52,8 +55,13 @@ export default function ChangePasswordPage() {
     setSaving(true);
     try {
       await changeOwnPassword(currentPassword, newPassword);
-      if (user) await clearMustChangePassword(user.uid);
-      window.location.href = "/admin";
+      if (developer && user) {
+        await clearMustChangePassword(user.uid);
+        window.location.href = "/admin";
+      } else if (client && user?.email) {
+        await clearClientMustChangePassword(client.id);
+        window.location.href = await resolvePostLoginRoute(user.uid, user.email);
+      }
     } catch {
       setError("Não foi possível alterar a senha. Verifique a senha atual.");
     } finally {
@@ -61,7 +69,7 @@ export default function ChangePasswordPage() {
     }
   }
 
-  if (loading || !developer?.mustChangePassword) {
+  if (loading || !mustChange) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <p className="text-sm text-slate-500">Carregando...</p>
@@ -81,7 +89,7 @@ export default function ChangePasswordPage() {
 
         <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
           Você está usando uma senha temporária. Defina uma nova senha para
-          continuar no painel admin.
+          continuar {developer ? "no painel admin" : "no portal"}.
         </div>
 
         <form
@@ -92,7 +100,7 @@ export default function ChangePasswordPage() {
             Criar nova senha
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Olá, {developer.name}. Escolha uma senha segura.
+            Olá, {(developer ?? client)?.name}. Escolha uma senha segura.
           </p>
 
           <div className="mt-6 space-y-4">

@@ -1,9 +1,13 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "@/lib/firebase/auth";
+import {
+  clearSessionExpiredFlag,
+  wasSessionExpired,
+} from "@/lib/firebase/session";
 import { resolvePostLoginRoute } from "@/contexts/AuthContext";
 import { getFirebaseAuth } from "@/lib/firebase/config";
 import { Button } from "@/components/ui/Button";
@@ -17,6 +21,12 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  // Este formulário só renderiza no navegador (useSearchParams sob Suspense).
+  const [sessionExpired] = useState(wasSessionExpired);
+
+  useEffect(() => {
+    clearSessionExpiredFlag();
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -47,6 +57,13 @@ function LoginForm() {
           </Link>
           <p className="mt-2 text-sm text-slate-500">Acesso ao sistema</p>
         </div>
+
+        {sessionExpired && (
+          <div className="mb-6 rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-700">
+            Sua sessão foi encerrada após 15 minutos de inatividade. Entre
+            novamente para continuar.
+          </div>
+        )}
 
         {pendingContract && (
           <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
@@ -97,6 +114,14 @@ function LoginForm() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
               />
+              <div className="mt-2 text-right">
+                <Link
+                  href="/forgot-password"
+                  className="text-sm text-indigo-600 hover:text-indigo-500"
+                >
+                  Esqueci minha senha
+                </Link>
+              </div>
             </div>
           </div>
 

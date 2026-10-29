@@ -19,6 +19,9 @@ export interface Client {
   company?: string;
   createdAt: string;
   onboardingComplete: boolean;
+  // Definido pelo admin ao criar uma senha temporária: o cliente troca no próximo acesso.
+  mustChangePassword?: boolean;
+  welcomeEmailSentAt?: string;
 }
 
 export interface ContractTemplateData {

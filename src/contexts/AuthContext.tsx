@@ -8,7 +8,13 @@ import {
   type ReactNode,
 } from "react";
 import type { User } from "firebase/auth";
-import { subscribeToAuth } from "@/lib/firebase/auth";
+import { signOut, subscribeToAuth } from "@/lib/firebase/auth";
+import {
+  flagSessionExpired,
+  getLastActivity,
+  isSessionIdleExpired,
+  markActivity,
+} from "@/lib/firebase/session";
 import {
   getClientByEmail,
   getDeveloperByUid,
@@ -49,9 +55,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!firebaseConfigured) return;
 
     const unsubscribe = subscribeToAuth(async (firebaseUser) => {
+      // Sessão restaurada depois de 15 minutos sem atividade (aba fechada,
+      // computador suspenso): encerra antes de exibir qualquer página logada.
+      // O signOut dispara este callback de novo, já sem usuário.
+      if (firebaseUser && isSessionIdleExpired()) {
+        flagSessionExpired();
+        await signOut();
+        return;
+      }
+
       setUser(firebaseUser);
 
       if (firebaseUser) {
+        // Sessões abertas antes deste controle existir começam a contar agora.
+        if (getLastActivity() === null) markActivity();
         const [devData, clientData] = await Promise.all([
           getDeveloperByUid(firebaseUser.uid),
           firebaseUser.email
@@ -81,6 +98,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return unsubscribe;
   }, [firebaseConfigured]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    let lastWrite = 0;
+    function handleActivity() {
+      const now = Date.now();
+      // Eventos como mousemove disparam dezenas de vezes por segundo.
+      if (now - lastWrite < 10_000) return;
+      lastWrite = now;
+      markActivity(now);
+    }
+
+    function checkIdle() {
+      if (!isSessionIdleExpired()) return;
+      flagSessionExpired();
+      void signOut();
+    }
+
+    const activityEvents = [
+      "mousemove",
+      "mousedown",
+      "keydown",
+      "scroll",
+      "touchstart",
+    ] as const;
+    activityEvents.forEach((name) =>
+      window.addEventListener(name, handleActivity, { passive: true }),
+    );
+    // O navegador desacelera timers em abas ocultas; ao voltar, confere na hora.
+    document.addEventListener("visibilitychange", checkIdle);
+    window.addEventListener("focus", checkIdle);
+    const interval = window.setInterval(checkIdle, 30_000);
+
+    return () => {
+      activityEvents.forEach((name) =>
+        window.removeEventListener(name, handleActivity),
+      );
+      document.removeEventListener("visibilitychange", checkIdle);
+      window.removeEventListener("focus", checkIdle);
+      window.clearInterval(interval);
+    };
+  }, [user]);
 
   return (
     <AuthContext.Provider
@@ -114,6 +174,7 @@ export async function resolvePostLoginRoute(
   }
 
   const client = await getClientByEmail(email);
+  if (client?.mustChangePassword) return "/change-password";
   if (client && (await clientHasSignedContract(client.id))) return "/portal";
 
   return "/login?pending=contract";
