@@ -173,6 +173,12 @@ npm run firebase -- deploy --only functions,firestore
 - [ ] Assinatura digital (DocuSign, Clicksign)
 - [x] Notificações ao cliente
 - [x] Domínio customizado (serifalabs.com)
+- [ ] Remetente de e-mail com domínio verificado: hoje é o de teste da Resend e
+  não entrega aos clientes. Veja [PENDENCIAS-TECNICAS.md](docs/PENDENCIAS-TECNICAS.md)
+
+## Pendências técnicas
+
+Itens conhecidos que precisam de verificação ou correção, com contexto e critério de conclusão: [docs/PENDENCIAS-TECNICAS.md](docs/PENDENCIAS-TECNICAS.md).
 
 ## Segurança
 

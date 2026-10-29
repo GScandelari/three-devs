@@ -17,6 +17,14 @@ O envio funciona da seguinte forma:
 A chave da Resend nunca é enviada ao navegador e não deve ser adicionada ao
 `.env.local` do frontend.
 
+## Situação atual do remetente (pendente)
+
+> **Atenção:** o remetente em produção ainda é o de teste da Resend
+> (`onboarding@resend.dev`), que só entrega ao dono da conta. Os e-mails
+> provavelmente **não chegam aos clientes**. Detalhes, motivo de não usar
+> `serifa.labs@gmail.com` como remetente e passos para resolver estão em
+> [PENDENCIAS-TECNICAS.md, item 1](PENDENCIAS-TECNICAS.md#1-remetente-dos-e-mails-não-entrega-aos-clientes).
+
 ## Pré-requisitos
 
 Antes de começar, confirme que você tem:
@@ -307,7 +315,11 @@ Confirme que:
 - o domínio está com status **Verified** na Resend;
 - `CONTRACT_EMAIL_FROM` usa esse mesmo domínio;
 - o endereço está no formato `Nome <email@dominio.com>`;
-- os registros SPF e DKIM continuam publicados no DNS.
+- os registros SPF e DKIM continuam publicados no DNS;
+- o remetente não é de um provedor público (`gmail.com`, `outlook.com` etc.),
+  porque esses domínios não podem ser verificados;
+- o remetente não é `onboarding@resend.dev`, que só entrega ao dono da conta
+  Resend (veja [PENDENCIAS-TECNICAS.md](PENDENCIAS-TECNICAS.md#1-remetente-dos-e-mails-não-entrega-aos-clientes)).
 
 ### Erro de autenticação da Resend
 
