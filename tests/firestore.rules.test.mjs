@@ -423,7 +423,10 @@ describe("troca de senha obrigatória do cliente", () => {
         onboardingComplete: true,
       }),
     );
-    await assertFails(updateDoc(doc(clientA, "clients/cA"), { name: "Outro" }));
+    // Nome, empresa e CPF/CNPJ podem ser editados ("Meus dados"); o e-mail, não.
+    await assertFails(
+      updateDoc(doc(clientA, "clients/cA"), { email: "outro@x.com" }),
+    );
   });
 
   test("cliente não altera o cadastro de outro cliente", async () => {
@@ -435,6 +438,65 @@ describe("troca de senha obrigatória do cliente", () => {
   test("desenvolvedor edita o perfil do cliente", async () => {
     await assertSucceeds(
       updateDoc(doc(dev, "clients/cA"), { name: "Cliente A2", company: "ACME" }),
+    );
+  });
+});
+
+describe("cliente edita os próprios dados (Meus dados)", () => {
+  test("cliente salva nome, empresa e CPF/CNPJ do próprio cadastro", async () => {
+    await assertSucceeds(
+      updateDoc(doc(clientA, "clients/cA"), {
+        name: "Cliente A da Silva",
+        company: "ACME",
+        document: "529.982.247-25",
+      }),
+    );
+  });
+
+  test("cliente salva só o CPF/CNPJ", async () => {
+    await assertSucceeds(
+      updateDoc(doc(clientA, "clients/cA"), { document: "11.222.333/0001-81" }),
+    );
+  });
+
+  test("cliente não edita o cadastro de outro cliente", async () => {
+    await assertFails(
+      updateDoc(doc(clientB, "clients/cA"), { document: "529.982.247-25" }),
+    );
+  });
+
+  test("cliente não altera e-mail, onboarding nem campos novos junto com os dados", async () => {
+    for (const extra of [
+      { email: "novo@x.com" },
+      { onboardingComplete: true },
+      { mustChangePassword: false },
+      { welcomeEmailSentAt: NOW },
+    ]) {
+      await assertFails(
+        updateDoc(doc(clientA, "clients/cA"), {
+          document: "529.982.247-25",
+          ...extra,
+        }),
+      );
+    }
+  });
+
+  test("rejeita nome vazio, tipos errados e textos longos demais", async () => {
+    for (const data of [
+      { name: "" },
+      { name: 123 },
+      { name: "x".repeat(121) },
+      { company: "x".repeat(121) },
+      { document: "1".repeat(19) },
+      { document: 52998224725 },
+    ]) {
+      await assertFails(updateDoc(doc(clientA, "clients/cA"), data));
+    }
+  });
+
+  test("visitante sem login não edita dados de cliente", async () => {
+    await assertFails(
+      updateDoc(doc(anon, "clients/cA"), { document: "529.982.247-25" }),
     );
   });
 });

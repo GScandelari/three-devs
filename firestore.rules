@@ -23,15 +23,31 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/clients/$(clientId)).data.email == request.auth.token.email;
     }
 
+    // Cliente edita em "Meus dados" só nome, empresa e CPF/CNPJ do próprio
+    // cadastro. E-mail (login), onboarding e demais campos ficam com a equipe.
+    // A validade do CPF/CNPJ é conferida no app; aqui, só tipo e tamanho.
+    function isValidOwnProfileUpdate() {
+      let data = request.resource.data;
+      return data.diff(resource.data).affectedKeys().hasOnly(["name", "company", "document"])
+        && data.name is string
+        && data.name.size() > 0
+        && data.name.size() <= 120
+        && data.get("company", "") is string
+        && data.get("company", "").size() <= 120
+        && data.get("document", "") is string
+        && data.get("document", "").size() <= 18;
+    }
+
     match /clients/{clientId} {
       allow read: if isDeveloper() || isOwnClient();
       allow create, delete: if isDeveloper();
-      // Cliente pode limpar apenas o flag mustChangePassword no próprio cadastro,
-      // depois de trocar a senha temporária definida pelo admin.
+      // Cliente pode limpar o flag mustChangePassword no próprio cadastro,
+      // depois de trocar a senha temporária, e editar os próprios dados.
       allow update: if isDeveloper()
         || (isOwnClient()
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["mustChangePassword"])
-            && request.resource.data.mustChangePassword == false);
+            && request.resource.data.mustChangePassword == false)
+        || (isOwnClient() && isValidOwnProfileUpdate());
     }
 
     // Links de definição/redefinição de senha. Só as Cloud Functions (Admin SDK)

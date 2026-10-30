@@ -77,6 +77,15 @@ visualizados ou, se não forem, 3 dias após a criação.
 | Nova nota | Admin → Projeto | Se "Avisar o cliente" estiver marcado (padrão: marcado) |
 | Novo link | Admin → Projeto | Se "Avisar o cliente" estiver marcado (padrão: marcado) |
 | Contrato assinado | Admin → Contratos | Sempre |
+| Dados do cliente incompletos | Calculado no portal | Enquanto faltar nome ou CPF/CNPJ no cadastro |
+
+**Lembrete de dados incompletos.** Diferente dos outros, ele não é gravado no
+Firestore: o portal o calcula a partir do cadastro do cliente. Fica fixo no
+topo da lista (ponto âmbar), conta no número do sininho e leva a **Meus dados**
+(`/portal/profile`), onde o próprio cliente informa nome, empresa e CPF/CNPJ.
+Clicar nele ou em "Limpar avisos" não o exclui: ele some sozinho quando os
+dados obrigatórios são salvos. Esses dados preenchem automaticamente os
+contratos criados depois (Admin → Contrato).
 
 Regras de funcionamento:
 

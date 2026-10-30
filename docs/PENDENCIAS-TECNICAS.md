@@ -9,7 +9,6 @@ remova-o deste arquivo na mesma PR da correção e registre-o em
 |---|-----------|------------|--------|
 | 1 | [Remetente dos e-mails não entrega aos clientes](#1-remetente-dos-e-mails-não-entrega-aos-clientes) | **Alta** | Aberta, com outro dev |
 | 7 | [CNPJ da prestadora zerado nos contratos](#7-cnpj-da-prestadora-zerado-nos-contratos) | **Alta** antes de enviar contratos reais | Adiada: aguardando o CNPJ da empresa |
-| 9 | [Clientes sem CPF/CNPJ no cadastro](#9-clientes-sem-cpfcnpj-no-cadastro) | Média | Aberta |
 | 10 | [Bloqueio do projeto sem contrato só na interface](#10-bloqueio-do-projeto-sem-contrato-só-na-interface) | Baixa | Adiada |
 | 11 | [Expiração por inatividade só no navegador](#11-expiração-por-inatividade-só-no-navegador) | Baixa | Adiada |
 | 12 | [`three-devs.web.app` não redireciona para `serifalabs.com`](#12-three-devswebapp-não-redireciona-para-serifalabscom) | Baixa | Adiada, não investigada |
@@ -109,29 +108,6 @@ ao cliente.
 
 ---
 
-## 9. Clientes sem CPF/CNPJ no cadastro
-
-**Prioridade:** média. Afeta os contratos gerados.
-
-### Contexto
-
-O campo **CPF/CNPJ** foi adicionado ao cadastro de clientes na PR #13. Ao
-escolher o cliente no editor de contrato, o documento é preenchido a partir do
-cadastro. Clientes cadastrados antes disso não têm documento, e o contrato sai
-com esse campo vazio, a menos que seja digitado à mão.
-
-### Como resolver
-
-Admin → Clientes → **Editar** em cada cliente sem documento → preencher
-**CPF/CNPJ**. Contratos já criados para esses clientes precisam ser abertos e o
-documento preenchido no formulário.
-
-### Critério de conclusão
-
-- [ ] Todos os clientes com contrato ativo ou pendente têm CPF/CNPJ cadastrado.
-
----
-
 ## 10. Bloqueio do projeto sem contrato só na interface
 
 **Prioridade:** baixa.
@@ -224,3 +200,4 @@ problema. Ele continua para links antigos e acessos diretos.
 | 5 | Política de TTL para `passwordTokens` (declarada em `firestore.indexes.json`) | 30/10/2026 |
 | 6 | Clientes antigos com e-mail em maiúsculas: verificação só de leitura em produção encontrou 0 de 5 clientes fora do padrão; nada a corrigir. Cadastros novos já gravam em minúsculas desde a PR #7 | 30/10/2026 |
 | 8 | CI usa Node.js 20: workflows passaram para Node.js 24 | 30/10/2026 |
+| 9 | Clientes sem CPF/CNPJ no cadastro: o próprio cliente completa nome, empresa e CPF/CNPJ em **Meus dados** (`/portal/profile`), com validação de CPF/CNPJ; enquanto faltar nome ou documento, um lembrete fixo aparece no sininho. As regras do Firestore permitem ao cliente editar só esses três campos | 30/10/2026 |
