@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatCpfCnpj } from "@/lib/documents";
 import {
   createClient,
   getAllClients,
@@ -8,7 +9,6 @@ import {
 } from "@/lib/firebase/firestore";
 import { sendClientWelcome, setClientPassword } from "@/lib/firebase/admin-api";
 import { Button } from "@/components/ui/Button";
-import { formatCpfCnpj } from "@/lib/documents";
 import type { Client } from "@/lib/types";
 
 const EMPTY_EDIT_FORM = {
