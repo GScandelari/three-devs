@@ -10,7 +10,6 @@ remova-o deste arquivo na mesma PR da correção e registre-o em
 | 1 | [Remetente dos e-mails não entrega aos clientes](#1-remetente-dos-e-mails-não-entrega-aos-clientes) | **Alta** | Aberta |
 | 2 | [Respostas dos clientes para `serifa.labs@gmail.com` (`reply_to`)](#2-respostas-dos-clientes-para-serifalabsgmailcom-reply_to) | Média | Aberta, depende da #1 |
 | 3 | [Functions e regras do Firestore fora do deploy automático](#3-functions-e-regras-do-firestore-fora-do-deploy-automático) | Média | Aberta |
-| 6 | [Clientes antigos com e-mail em maiúsculas](#6-clientes-antigos-com-e-mail-em-maiúsculas) | Baixa | Aberta |
 | 7 | [CNPJ da prestadora zerado nos contratos](#7-cnpj-da-prestadora-zerado-nos-contratos) | **Alta** antes de enviar contratos reais | Aberta |
 | 9 | [Clientes sem CPF/CNPJ no cadastro](#9-clientes-sem-cpfcnpj-no-cadastro) | Média | Aberta |
 | 10 | [Bloqueio do projeto sem contrato só na interface](#10-bloqueio-do-projeto-sem-contrato-só-na-interface) | Baixa | Aberta |
@@ -155,31 +154,6 @@ Outros pontos do deploy manual:
 
 ---
 
-## 6. Clientes antigos com e-mail em maiúsculas
-
-**Prioridade:** baixa.
-
-### Contexto
-
-O Firebase Auth guarda e-mails em minúsculas, e o app busca o cliente no
-Firestore por esse valor. Desde a PR #7, cadastros novos gravam o e-mail em
-minúsculas. Clientes cadastrados **antes** disso com letras maiúsculas (por
-exemplo `Ana@Empresa.com`) não são encontrados no login, no "Esqueci minha
-senha" nem na limpeza do flag `mustChangePassword`.
-
-### Como verificar e resolver
-
-- No Firestore, procure em `clients` documentos cujo `email` tenha letras
-  maiúsculas.
-- Corrija os documentos para minúsculas, à mão ou com um script único usando o
-  Admin SDK.
-
-### Critério de conclusão
-
-- [ ] Nenhum documento de `clients` com e-mail em maiúsculas.
-
----
-
 ## 7. CNPJ da prestadora zerado nos contratos
 
 **Prioridade:** alta antes de enviar contratos reais.
@@ -316,4 +290,5 @@ problema. Ele continua para links antigos e acessos diretos.
 |---|-----------|--------------|
 | 4 | Índices do Firestore fora do `firestore.indexes.json`: TTL de `notifications` declarado no arquivo; índice sem uso de `projects` removido | 30/10/2026 |
 | 5 | Política de TTL para `passwordTokens` (declarada em `firestore.indexes.json`) | 30/10/2026 |
+| 6 | Clientes antigos com e-mail em maiúsculas: verificação só de leitura em produção encontrou 0 de 5 clientes fora do padrão; nada a corrigir. Cadastros novos já gravam em minúsculas desde a PR #7 | 30/10/2026 |
 | 8 | CI usa Node.js 20: workflows passaram para Node.js 24 | 30/10/2026 |
