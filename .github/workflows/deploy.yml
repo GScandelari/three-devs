@@ -43,7 +43,8 @@ jobs:
 
       - run: npm ci
 
-      - run: npm ci --prefix functions
+      # Sem scripts de instalação: as dependências das functions não precisam deles.
+      - run: npm ci --prefix functions --ignore-scripts
 
       - run: npm run build
         env:
@@ -85,13 +86,13 @@ jobs:
 
       - name: Validar regras, índices e functions (PR, sem publicar)
         if: github.event_name == 'pull_request'
-        run: npx firebase deploy --only firestore,functions --project "$FIREBASE_PROJECT" --non-interactive --dry-run
+        run: npm run firebase -- deploy --only firestore,functions --project "$FIREBASE_PROJECT" --non-interactive --dry-run
 
       # --force: o repositório é a fonte da verdade. Functions removidas do
       # código e índices fora do firestore.indexes.json são apagados.
       - name: Publicar regras, índices e functions
         if: github.event_name != 'pull_request'
-        run: npx firebase deploy --only firestore,functions --project "$FIREBASE_PROJECT" --non-interactive --force
+        run: npm run firebase -- deploy --only firestore,functions --project "$FIREBASE_PROJECT" --non-interactive --force
 
       # Sem isto a action roda firebase-tools@latest, e uma versão nova da CLI
       # pode quebrar o deploy sem nenhuma mudança no repositório. A versão vem
