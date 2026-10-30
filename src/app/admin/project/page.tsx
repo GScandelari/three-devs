@@ -6,22 +6,30 @@ import { useSearchParams } from "next/navigation";
 import {
   addProjectLink,
   addProjectNote,
+  getClientById,
+  getContractsByClientId,
   getProjectById,
+  updateProjectInfo,
   updateProjectStatus,
 } from "@/lib/firebase/firestore";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/Button";
 import {
+  contractStatusColors,
+  contractStatusLabels,
   projectStatusLabels,
   projectStatusColors,
 } from "@/lib/labels";
-import type { Project, ProjectStatus } from "@/lib/types";
+import type { Client, Contract, Project, ProjectStatus } from "@/lib/types";
 
 function ProjectAdminContent() {
   const searchParams = useSearchParams();
   const projectId = searchParams.get("id");
   const { developer } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
+  const [client, setClient] = useState<Client | null>(null);
+  // Contratos do cliente vinculados a este projeto.
+  const [contracts, setContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(true);
   const [note, setNote] = useState("");
   const [important, setImportant] = useState(false);
@@ -41,7 +49,16 @@ function ProjectAdminContent() {
     const id = projectId;
 
     async function load() {
-      setProject(await getProjectById(id));
+      const data = await getProjectById(id);
+      setProject(data);
+      if (data?.clientId) {
+        const [clientData, clientContracts] = await Promise.all([
+          getClientById(data.clientId),
+          getContractsByClientId(data.clientId),
+        ]);
+        setClient(clientData);
+        setContracts(clientContracts.filter((c) => c.projectId === data.id));
+      }
       setLoading(false);
     }
 
@@ -173,7 +190,6 @@ function ProjectAdminContent() {
           <h1 className="text-2xl font-semibold text-slate-900">
             {project.name}
           </h1>
-          <p className="mt-2 max-w-2xl text-slate-600">{project.description}</p>
         </div>
         <span
           className={`rounded-full px-3 py-1 text-sm font-medium ${projectStatusColors[project.status]}`}
@@ -181,6 +197,13 @@ function ProjectAdminContent() {
           {projectStatusLabels[project.status]}
         </span>
       </div>
+
+      <ProjectInfoSection
+        project={project}
+        client={client}
+        contracts={contracts}
+        onSaved={(info) => setProject({ ...currentProject, ...info })}
+      />
 
       <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6">
         <h2 className="text-sm font-medium uppercase tracking-wider text-slate-400">
@@ -338,6 +361,213 @@ function ProjectAdminContent() {
         </section>
       </div>
     </div>
+  );
+}
+
+function ProjectInfoSection({
+  project,
+  client,
+  contracts,
+  onSaved,
+}: {
+  project: Project;
+  client: Client | null;
+  contracts: Contract[];
+  onSaved: (info: { description: string; objective: string }) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ description: "", objective: "" });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  // Mesma regra do portal: o projeto só abre para o cliente com um contrato
+  // assinado vinculado a ele.
+  const unlocked = contracts.some((c) => c.status === "signed");
+
+  function startEditing() {
+    setForm({
+      description: project.description,
+      objective: project.objective ?? "",
+    });
+    setError("");
+    setEditing(true);
+  }
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    if (saving || !form.description.trim()) return;
+    setError("");
+    setSaving(true);
+
+    const info = {
+      description: form.description.trim(),
+      objective: form.objective.trim(),
+    };
+    try {
+      await updateProjectInfo(project.id, info);
+      onSaved(info);
+      setEditing(false);
+    } catch (err) {
+      console.error("Erro ao salvar informações do projeto:", err);
+      setError("Não foi possível salvar. Nada foi alterado.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6">
+      <div className="flex items-center justify-between gap-4">
+        <h2 className="text-sm font-medium uppercase tracking-wider text-slate-400">
+          Informações gerais
+        </h2>
+        {!editing && (
+          <button
+            type="button"
+            onClick={startEditing}
+            className="text-xs font-medium text-indigo-600 hover:text-indigo-500"
+          >
+            Editar
+          </button>
+        )}
+      </div>
+
+      {editing ? (
+        <form onSubmit={handleSave} className="mt-4 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700">
+              Descritivo geral
+            </label>
+            <textarea
+              required
+              rows={4}
+              value={form.description}
+              onChange={(e) =>
+                setForm({ ...form, description: e.target.value })
+              }
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700">
+              Objetivo do projeto
+            </label>
+            <textarea
+              rows={3}
+              value={form.objective}
+              onChange={(e) => setForm({ ...form, objective: e.target.value })}
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+            />
+          </div>
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          <div className="flex gap-3">
+            <Button type="submit" disabled={saving || !form.description.trim()}>
+              {saving ? "Salvando..." : "Salvar"}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={saving}
+              onClick={() => setEditing(false)}
+            >
+              Cancelar
+            </Button>
+          </div>
+        </form>
+      ) : (
+        <dl className="mt-4 space-y-4">
+          <div>
+            <dt className="text-xs font-medium text-slate-500">
+              Descritivo geral
+            </dt>
+            <dd className="mt-1 whitespace-pre-line text-sm text-slate-700">
+              {project.description || "—"}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs font-medium text-slate-500">
+              Objetivo do projeto
+            </dt>
+            <dd className="mt-1 whitespace-pre-line text-sm text-slate-700">
+              {project.objective || (
+                <span className="text-slate-400">Não informado.</span>
+              )}
+            </dd>
+          </div>
+        </dl>
+      )}
+
+      <div className="mt-6 border-t border-slate-100 pt-4">
+        <h3 className="text-xs font-medium text-slate-500">Cliente</h3>
+        {client ? (
+          <div className="mt-1">
+            <p className="text-sm font-medium text-slate-900">
+              {client.name}
+              {client.company && (
+                <span className="font-normal text-slate-500">
+                  {" "}
+                  · {client.company}
+                </span>
+              )}
+            </p>
+            <a
+              href={`mailto:${client.email}`}
+              className="text-sm text-indigo-600 hover:text-indigo-500"
+            >
+              {client.email}
+            </a>
+          </div>
+        ) : (
+          <p className="mt-1 text-sm text-red-600">
+            {project.clientId
+              ? `Cliente não encontrado (id ${project.clientId}). Ele pode ter sido excluído.`
+              : "Projeto sem cliente vinculado."}
+          </p>
+        )}
+
+        <p className="mt-4 text-sm text-slate-700">
+          Acesso do cliente a este projeto:{" "}
+          <span
+            className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+              unlocked
+                ? "bg-emerald-100 text-emerald-800"
+                : "bg-amber-100 text-amber-800"
+            }`}
+          >
+            {unlocked ? "Liberado" : "Bloqueado"}
+          </span>
+        </p>
+        {contracts.length === 0 ? (
+          <p className="mt-2 text-sm text-slate-500">
+            Nenhum contrato vinculado a este projeto. Crie um em{" "}
+            <Link
+              href="/admin/contracts"
+              className="text-indigo-600 hover:text-indigo-500"
+            >
+              Contratos
+            </Link>{" "}
+            e marque como assinado para liberar o projeto no portal.
+          </p>
+        ) : (
+          <ul className="mt-2 space-y-1">
+            {contracts.map((contract) => (
+              <li key={contract.id} className="text-sm">
+                <Link
+                  href={`/admin/contract?id=${contract.id}`}
+                  className="text-slate-700 hover:text-indigo-600"
+                >
+                  {contract.title}
+                </Link>{" "}
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${contractStatusColors[contract.status]}`}
+                >
+                  {contractStatusLabels[contract.status]}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
   );
 }
 

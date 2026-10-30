@@ -26,6 +26,7 @@ export default function AdminProjectsPage() {
   const [form, setForm] = useState({
     name: "",
     description: "",
+    objective: "",
     clientId: "",
   });
   const [error, setError] = useState("");
@@ -59,12 +60,13 @@ export default function AdminProjectsPage() {
       const id = await createProject({
         name: form.name,
         description: form.description,
+        objective: form.objective.trim(),
         clientId: form.clientId,
         leadDeveloperId: developer.id,
         leadDeveloperName: developer.name,
       });
       setShowForm(false);
-      setForm({ name: "", description: "", clientId: "" });
+      setForm({ name: "", description: "", objective: "", clientId: "" });
       await loadData();
       router.push(`/admin/project?id=${id}`);
     } catch {
@@ -126,7 +128,7 @@ export default function AdminProjectsPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700">
-                Descrição
+                Descritivo geral
               </label>
               <textarea
                 required
@@ -134,6 +136,20 @@ export default function AdminProjectsPage() {
                 value={form.description}
                 onChange={(e) =>
                   setForm({ ...form, description: e.target.value })
+                }
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700">
+                Objetivo do projeto
+              </label>
+              <textarea
+                rows={2}
+                value={form.objective}
+                placeholder="Opcional. Ex.: reduzir faltas em consultas com lembretes automáticos."
+                onChange={(e) =>
+                  setForm({ ...form, objective: e.target.value })
                 }
                 className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
               />
