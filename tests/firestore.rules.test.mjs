@@ -414,6 +414,11 @@ describe("troca de senha obrigatória do cliente", () => {
   });
 
   test("cliente não reativa o flag nem altera outros campos", async () => {
+    // Limpa primeiro: regravar o valor atual (true → true) não muda nada e é
+    // aceito como gravação sem efeito.
+    await assertSucceeds(
+      updateDoc(doc(clientA, "clients/cA"), { mustChangePassword: false }),
+    );
     await assertFails(
       updateDoc(doc(clientA, "clients/cA"), { mustChangePassword: true }),
     );
