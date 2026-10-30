@@ -22,7 +22,7 @@ initializeApp();
 const resendApiKey = defineSecret("RESEND_API_KEY");
 const contractEmailFrom = defineString("CONTRACT_EMAIL_FROM");
 const appUrl = defineString("APP_URL", {
-  default: "https://three-devs.web.app",
+  default: "https://serifalabs.com",
 });
 
 async function assertDeveloper(uid) {

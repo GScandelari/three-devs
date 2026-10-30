@@ -7,7 +7,7 @@ const {
 } = require("./contract-email");
 
 test("normaliza a URL pública sem criar barra dupla", () => {
-  assert.equal(normalizeAppUrl("https://three-devs.web.app///"), "https://three-devs.web.app");
+  assert.equal(normalizeAppUrl("https://serifalabs.com///"), "https://serifalabs.com");
 });
 
 test("escapa dados do contrato no HTML do e-mail", () => {
@@ -18,13 +18,13 @@ test("escapa dados do contrato no HTML do e-mail", () => {
         projectName: "Site & App",
       },
     },
-    "https://three-devs.web.app/",
+    "https://serifalabs.com/",
   );
 
   assert.doesNotMatch(html, /<script>/);
   assert.match(html, /&lt;script&gt;/);
   assert.match(html, /Site &amp; App/);
-  assert.match(html, /https:\/\/three-devs\.web\.app\/login\//);
+  assert.match(html, /https:\/\/serifalabs\.com\/login\//);
 });
 
 test("gera chave de idempotência por tentativa de envio", () => {
