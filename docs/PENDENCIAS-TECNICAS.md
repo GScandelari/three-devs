@@ -28,7 +28,7 @@ Em produção, todas as Cloud Functions que enviam e-mail (`sendContractEmail`,
 
 ```text
 CONTRACT_EMAIL_FROM="Three Devs <onboarding@resend.dev>"
-APP_URL=https://three-devs.web.app
+APP_URL=https://serifalabs.com
 ```
 
 `onboarding@resend.dev` é o **remetente de teste** da Resend. Ele só entrega ao
@@ -71,7 +71,7 @@ O valor publicado aparece no Google Cloud Console → **Cloud Run functions** �
 
    ```dotenv
    CONTRACT_EMAIL_FROM="Serifa Labs <contato@serifalabs.com>"
-   APP_URL=https://three-devs.web.app
+   APP_URL=https://serifalabs.com
    ```
 
 4. Publicar as funções:

@@ -35,16 +35,16 @@ test("rejeita tokens em formato inesperado", () => {
 
 test("monta o link de definição de senha sem barra dupla", () => {
   assert.equal(
-    buildPasswordLink("https://three-devs.web.app/", "tok_en-1"),
-    "https://three-devs.web.app/reset-password/?token=tok_en-1",
+    buildPasswordLink("https://serifalabs.com/", "tok_en-1"),
+    "https://serifalabs.com/reset-password/?token=tok_en-1",
   );
 });
 
 test("e-mail de boas-vindas traz o link, a validade de 72h e a nota do 'Esqueci minha senha'", () => {
   const html = buildWelcomeEmailHtml({
     name: '<b>Ana</b>',
-    link: "https://three-devs.web.app/reset-password/?token=x",
-    appUrl: "https://three-devs.web.app",
+    link: "https://serifalabs.com/reset-password/?token=x",
+    appUrl: "https://serifalabs.com",
   });
 
   assert.doesNotMatch(html, /<b>Ana<\/b>/);
@@ -53,13 +53,13 @@ test("e-mail de boas-vindas traz o link, a validade de 72h e a nota do 'Esqueci 
   assert.match(html, /72 horas/);
   assert.match(html, /Esqueci minha senha/);
   assert.match(html, /substitui automaticamente/);
-  assert.match(html, /three-devs\.web\.app\/login\//);
+  assert.match(html, /serifalabs\.com\/login\//);
 });
 
 test("e-mail de redefinição traz o link e a validade de 30 minutos", () => {
   const html = buildResetEmailHtml({
     name: "Ana",
-    link: "https://three-devs.web.app/reset-password/?token=y",
+    link: "https://serifalabs.com/reset-password/?token=y",
   });
 
   assert.match(html, /reset-password\/\?token=y/);

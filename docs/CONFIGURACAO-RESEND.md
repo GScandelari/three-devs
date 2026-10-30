@@ -160,7 +160,7 @@ Além do secret, as funções usam estes parâmetros:
 | Parâmetro | Exemplo | Finalidade |
 |-----------|---------|------------|
 | `CONTRACT_EMAIL_FROM` | `Three Devs <contratos@seudominio.com>` | Remetente do e-mail |
-| `APP_URL` | `https://three-devs.web.app` | Link para o portal incluído no e-mail |
+| `APP_URL` | `https://serifalabs.com` | Link para o portal incluído no e-mail |
 
 `CONTRACT_EMAIL_FROM` será solicitado no primeiro deploy. Informe o nome e o
 endereço completo, incluindo os sinais `<` e `>`:
@@ -169,15 +169,17 @@ endereço completo, incluindo os sinais `<` e `>`:
 Three Devs <contratos@seudominio.com>
 ```
 
-`APP_URL` já possui `https://three-devs.web.app` como valor padrão. Se o site
-passar a usar um domínio próprio, atualize esse parâmetro no próximo deploy.
+`APP_URL` já possui `https://serifalabs.com`, o domínio oficial do site, como
+valor padrão. Use sempre o domínio oficial: o login fica guardado por domínio,
+então links para `three-devs.web.app` deixariam o cliente logado no endereço
+errado. Se o domínio mudar, atualize esse parâmetro e publique as functions.
 
 Caso prefira declarar os parâmetros antes do deploy, crie localmente o arquivo
 `functions/.env.three-devs` com o conteúdo abaixo:
 
 ```dotenv
 CONTRACT_EMAIL_FROM="Three Devs <contratos@seudominio.com>"
-APP_URL=https://three-devs.web.app
+APP_URL=https://serifalabs.com
 ```
 
 Esse arquivo corresponde a uma configuração local do projeto e está coberto

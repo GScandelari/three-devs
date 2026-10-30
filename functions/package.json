@@ -2,7 +2,7 @@
   "name": "three-devs-functions",
   "description": "Cloud Functions for Three Devs admin operations",
   "engines": {
-    "node": "20"
+    "node": "24"
   },
   "main": "index.js",
   "scripts": {
