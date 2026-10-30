@@ -2,9 +2,20 @@ const assert = require("node:assert/strict");
 const test = require("node:test");
 const {
   buildContractEmailHtml,
+  buildReplyToField,
   makeIdempotencyKey,
   normalizeAppUrl,
 } = require("./contract-email");
+
+test("inclui reply_to só com um e-mail válido", () => {
+  assert.deepEqual(buildReplyToField(" serifa.labs@gmail.com "), {
+    reply_to: "serifa.labs@gmail.com",
+  });
+  assert.deepEqual(buildReplyToField(""), {});
+  assert.deepEqual(buildReplyToField(undefined), {});
+  assert.deepEqual(buildReplyToField("não é e-mail"), {});
+  assert.deepEqual(buildReplyToField("Nome <a@b.com>"), {});
+});
 
 test("normaliza a URL pública sem criar barra dupla", () => {
   assert.equal(normalizeAppUrl("https://serifalabs.com///"), "https://serifalabs.com");

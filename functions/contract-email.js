@@ -11,6 +11,15 @@ function normalizeAppUrl(value) {
   return String(value ?? "").trim().replace(/\/+$/, "");
 }
 
+// Campo reply_to da Resend: as respostas do cliente vão para este endereço em
+// vez do remetente. Vazio ou inválido: o campo é omitido e as respostas vão
+// para o remetente.
+function buildReplyToField(value) {
+  const replyTo = String(value ?? "").trim();
+  if (!/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(replyTo)) return {};
+  return { reply_to: replyTo };
+}
+
 function makeIdempotencyKey(contractId, requestId) {
   const normalizedRequestId = String(requestId ?? "").trim();
   if (!/^[a-zA-Z0-9_-]{8,128}$/.test(normalizedRequestId)) return null;
@@ -36,6 +45,7 @@ function buildContractEmailHtml(contract, configuredAppUrl) {
 
 module.exports = {
   buildContractEmailHtml,
+  buildReplyToField,
   escapeHtml,
   makeIdempotencyKey,
   normalizeAppUrl,

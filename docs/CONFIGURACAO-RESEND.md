@@ -161,6 +161,7 @@ Além do secret, as funções usam estes parâmetros:
 |-----------|---------|------------|
 | `CONTRACT_EMAIL_FROM` | `Three Devs <contratos@seudominio.com>` | Remetente do e-mail |
 | `APP_URL` | `https://serifalabs.com` | Link para o portal incluído no e-mail |
+| `EMAIL_REPLY_TO` | `serifa.labs@gmail.com` | Opcional: endereço que recebe as respostas dos clientes (`reply_to`). Vazio, as respostas vão para o remetente |
 
 Os dois parâmetros são **variáveis do repositório no GitHub**: **Settings →
 Secrets and variables → Actions → Variables**. A cada deploy, o CI gera o
