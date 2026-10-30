@@ -17,6 +17,8 @@ export interface Client {
   email: string;
   name: string;
   company?: string;
+  // CPF ou CNPJ com máscara; usado para preencher os contratos.
+  document?: string;
   createdAt: string;
   onboardingComplete: boolean;
   // Definido pelo admin ao criar uma senha temporária: o cliente troca no próximo acesso.

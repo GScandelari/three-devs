@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatCpfCnpj } from "@/lib/documents";
 import {
   createClient,
   getAllClients,
@@ -14,6 +15,7 @@ import type { Client } from "@/lib/types";
 const EMPTY_EDIT_FORM = {
   name: "",
   company: "",
+  document: "",
   password: "",
   mustChangePassword: true,
 };
@@ -33,6 +35,7 @@ export default function AdminClientsPage() {
     name: "",
     email: "",
     company: "",
+    document: "",
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -64,6 +67,7 @@ export default function AdminClientsPage() {
       ...EMPTY_EDIT_FORM,
       name: client.name,
       company: client.company ?? "",
+      document: client.document ?? "",
     });
     setEditError("");
     setEditSuccess("");
@@ -88,6 +92,7 @@ export default function AdminClientsPage() {
         name: form.name,
         email: form.email,
         company: form.company,
+        document: form.document,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao criar cliente.");
@@ -106,7 +111,7 @@ export default function AdminClientsPage() {
       );
     }
 
-    setForm({ name: "", email: "", company: "" });
+    setForm({ name: "", email: "", company: "", document: "" });
     setShowForm(false);
     await loadClients();
     setSaving(false);
@@ -123,8 +128,17 @@ export default function AdminClientsPage() {
     try {
       const name = editForm.name.trim();
       const company = editForm.company.trim();
-      if (name !== editClient.name || company !== (editClient.company ?? "")) {
-        await updateClientProfile(editClient.id, { name, company });
+      const clientDocument = editForm.document.trim();
+      if (
+        name !== editClient.name ||
+        company !== (editClient.company ?? "") ||
+        clientDocument !== (editClient.document ?? "")
+      ) {
+        await updateClientProfile(editClient.id, {
+          name,
+          company,
+          document: clientDocument,
+        });
       }
 
       let message = "Perfil atualizado.";
@@ -224,6 +238,12 @@ export default function AdminClientsPage() {
               value={form.company}
               onChange={(v) => setForm({ ...form, company: v })}
             />
+            <Field
+              label="CPF/CNPJ"
+              value={form.document}
+              onChange={(v) => setForm({ ...form, document: formatCpfCnpj(v) })}
+              placeholder="Opcional — preenche os contratos"
+            />
           </div>
           {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
           <Button type="submit" disabled={saving} className="mt-4">
@@ -262,6 +282,13 @@ export default function AdminClientsPage() {
               label="Empresa"
               value={editForm.company}
               onChange={(v) => setEditForm({ ...editForm, company: v })}
+            />
+            <Field
+              label="CPF/CNPJ"
+              value={editForm.document}
+              onChange={(v) =>
+                setEditForm({ ...editForm, document: formatCpfCnpj(v) })
+              }
             />
           </div>
 

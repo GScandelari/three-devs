@@ -214,6 +214,7 @@ export async function createClient(data: {
   email: string;
   name: string;
   company?: string;
+  document?: string;
 }): Promise<string> {
   const db = dbOrThrow();
   const id = crypto.randomUUID();
@@ -224,6 +225,7 @@ export async function createClient(data: {
     email: data.email.trim().toLowerCase(),
     name: data.name,
     company: data.company ?? "",
+    document: data.document ?? "",
     createdAt: now,
     onboardingComplete: false,
   });
@@ -233,11 +235,12 @@ export async function createClient(data: {
 
 export async function updateClientProfile(
   clientId: string,
-  data: { name: string; company: string },
+  data: { name: string; company: string; document: string },
 ) {
   await updateDoc(doc(dbOrThrow(), "clients", clientId), {
     name: data.name,
     company: data.company,
+    document: data.document,
   });
 }
 

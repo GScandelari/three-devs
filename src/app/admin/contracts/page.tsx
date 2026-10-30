@@ -10,7 +10,10 @@ import {
   getAllProjects,
   updateContractStatus,
 } from "@/lib/firebase/firestore";
-import { EMPTY_CONTRACT_TEMPLATE } from "@/lib/contracts/template";
+import {
+  EMPTY_CONTRACT_TEMPLATE,
+  applySystemFields,
+} from "@/lib/contracts/template";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/Button";
 import {
@@ -85,18 +88,21 @@ export default function AdminContractsPage() {
       const id = await createContract({
         clientId: form.clientId,
         projectId: form.projectId,
-        template: {
-          ...EMPTY_CONTRACT_TEMPLATE,
-          clientName: client?.name ?? "",
-          clientEmail: client?.email ?? "",
-          clientCompany: client?.company ?? "",
-          projectName: project?.name ?? "",
-          leadDeveloperName:
-            project?.leadDeveloperName || developer?.name || "",
-          servicesDescription:
-            project?.description ||
-            EMPTY_CONTRACT_TEMPLATE.servicesDescription,
-        },
+        // leadDeveloperName vazio: applySystemFields grava quem está criando.
+        template: applySystemFields(
+          {
+            ...EMPTY_CONTRACT_TEMPLATE,
+            clientName: client?.name ?? "",
+            clientDocument: client?.document ?? "",
+            clientEmail: client?.email ?? "",
+            clientCompany: client?.company ?? "",
+            projectName: project?.name ?? "",
+            servicesDescription:
+              project?.description ||
+              EMPTY_CONTRACT_TEMPLATE.servicesDescription,
+          },
+          developer?.name ?? "",
+        ),
       });
 
       setShowForm(false);
