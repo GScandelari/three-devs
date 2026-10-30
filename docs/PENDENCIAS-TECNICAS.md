@@ -9,7 +9,6 @@ remova-o deste arquivo na mesma PR da correção e registre-o em
 |---|-----------|------------|--------|
 | 1 | [Remetente dos e-mails não entrega aos clientes](#1-remetente-dos-e-mails-não-entrega-aos-clientes) | **Alta** | Aberta |
 | 2 | [Respostas dos clientes para `serifa.labs@gmail.com` (`reply_to`)](#2-respostas-dos-clientes-para-serifalabsgmailcom-reply_to) | Média | Aberta, depende da #1 |
-| 3 | [Functions e regras do Firestore fora do deploy automático](#3-functions-e-regras-do-firestore-fora-do-deploy-automático) | Média | Aberta |
 | 7 | [CNPJ da prestadora zerado nos contratos](#7-cnpj-da-prestadora-zerado-nos-contratos) | **Alta** antes de enviar contratos reais | Aberta |
 | 9 | [Clientes sem CPF/CNPJ no cadastro](#9-clientes-sem-cpfcnpj-no-cadastro) | Média | Aberta |
 | 10 | [Bloqueio do projeto sem contrato só na interface](#10-bloqueio-do-projeto-sem-contrato-só-na-interface) | Baixa | Aberta |
@@ -68,20 +67,11 @@ O valor publicado aparece no Google Cloud Console → **Cloud Run functions** �
    [CONFIGURACAO-RESEND.md, seção 2](CONFIGURACAO-RESEND.md#2-adicionar-e-verificar-o-domínio).
 2. Escolher um remetente desse domínio, por exemplo
    `Serifa Labs <contato@serifalabs.com>`.
-3. Atualizar `functions/.env.three-devs`. O arquivo é ignorado pelo Git, então
-   crie-o se não existir:
-
-   ```dotenv
-   CONTRACT_EMAIL_FROM="Serifa Labs <contato@serifalabs.com>"
-   APP_URL=https://serifalabs.com
-   ```
-
-4. Publicar as funções:
-
-   ```powershell
-   npm ci --prefix functions
-   npm run firebase -- deploy --only functions
-   ```
+3. No GitHub, em **Settings → Secrets and variables → Actions → Variables**,
+   alterar `CONTRACT_EMAIL_FROM` para o remetente escolhido.
+4. Publicar: **Actions → Deploy to Firebase → Run workflow** na `main`, ou
+   esperar o próximo merge. O CI gera o `.env` das functions a partir da
+   variável e publica (veja "Deploy automático" no `README.md`).
 
 ### Critério de conclusão
 
@@ -115,42 +105,6 @@ implementado.**
 ### Critério de conclusão
 
 - [ ] Responder a um e-mail de teste envia a resposta para `serifa.labs@gmail.com`.
-
----
-
-## 3. Functions e regras do Firestore fora do deploy automático
-
-**Prioridade:** média.
-
-### Contexto
-
-O workflow `.github/workflows/deploy.yml` publica **apenas o hosting**. Cloud
-Functions e `firestore.rules` são publicadas à mão. Se uma mudança no frontend
-depender de uma function nova e o merge acontecer antes do deploy manual, o
-site chama uma função que não existe. Isso aconteceu no merge da PR #7.
-
-Outros pontos do deploy manual:
-
-- Os parâmetros ficam em `functions/.env.three-devs`, que não está no Git. Cada
-  máquina que faz deploy precisa criá-lo (valores atuais no item
-  [1](#1-remetente-dos-e-mails-não-entrega-aos-clientes)).
-- O runtime das functions é **Node.js 24** (`functions/package.json`), com
-  descontinuação prevista para 30/04/2028. O Node.js 20 foi descontinuado em
-  30/10/2026 e passou a bloquear qualquer deploy até a troca (PR #14).
-
-### Opções
-
-- Publicar functions e regras pelo CI, antes do hosting. Isso exige mais papéis
-  na conta de serviço: Cloud Functions, Secret Manager, Service Account User e
-  Firebase Rules. Os parâmetros de `functions/.env.three-devs` também teriam de
-  vir de secrets do GitHub.
-- Ou manter o deploy manual e incluir um checklist obrigatório no template de
-  PR.
-
-### Critério de conclusão
-
-- [ ] Não é mais possível publicar o hosting sem as functions e regras de que
-      ele depende, ou o processo manual está documentado e é obrigatório.
 
 ---
 
@@ -288,6 +242,7 @@ problema. Ele continua para links antigos e acessos diretos.
 
 | # | Pendência | Resolvida em |
 |---|-----------|--------------|
+| 3 | Functions e regras do Firestore fora do deploy automático: o CI passou a publicar regras, índices, functions e site, nessa ordem, com validação `--dry-run` nas PRs; parâmetros das functions vêm das variáveis do GitHub | 30/10/2026 |
 | 4 | Índices do Firestore fora do `firestore.indexes.json`: TTL de `notifications` declarado no arquivo; índice sem uso de `projects` removido | 30/10/2026 |
 | 5 | Política de TTL para `passwordTokens` (declarada em `firestore.indexes.json`) | 30/10/2026 |
 | 6 | Clientes antigos com e-mail em maiúsculas: verificação só de leitura em produção encontrou 0 de 5 clientes fora do padrão; nada a corrigir. Cadastros novos já gravam em minúsculas desde a PR #7 | 30/10/2026 |
