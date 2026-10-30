@@ -14,7 +14,11 @@ import {
   updateContractStatus,
   updateContractTemplate,
 } from "@/lib/firebase/firestore";
-import { EMPTY_CONTRACT_TEMPLATE } from "@/lib/contracts/template";
+import {
+  EMPTY_CONTRACT_TEMPLATE,
+  applySystemFields,
+} from "@/lib/contracts/template";
+import { useAuth } from "@/contexts/AuthContext";
 import { ContractTemplateForm } from "@/components/contracts/ContractTemplateForm";
 import { ContractDocument } from "@/components/contracts/ContractDocument";
 import { Button } from "@/components/ui/Button";
@@ -34,6 +38,8 @@ function ContractEditorContent() {
   const searchParams = useSearchParams();
   const contractId = searchParams.get("id");
   const router = useRouter();
+  const { developer } = useAuth();
+  const developerName = developer?.name ?? "";
 
   const [contract, setContract] = useState<Contract | null>(null);
   const [clients, setClients] = useState<Client[]>([]);
@@ -64,9 +70,12 @@ function ContractEditorContent() {
         setContract(c);
         setClients(cl);
         setProjects(p);
-        if (c?.template) {
-          setTemplate({ ...EMPTY_CONTRACT_TEMPLATE, ...c.template });
-        }
+        setTemplate(
+          applySystemFields(
+            { ...EMPTY_CONTRACT_TEMPLATE, ...c?.template },
+            developerName,
+          ),
+        );
       } catch (caught) {
         console.error("Erro ao carregar contrato:", caught);
         setError("Não foi possível carregar o contrato. Atualize a página.");
@@ -76,12 +85,13 @@ function ContractEditorContent() {
     }
 
     void load();
-  }, [contractId]);
+  }, [contractId, developerName]);
 
-  const clientName = useMemo(
-    () => clients.find((c) => c.id === contract?.clientId)?.name,
+  const linkedClient = useMemo(
+    () => clients.find((c) => c.id === contract?.clientId),
     [clients, contract],
   );
+  const clientName = linkedClient?.name;
   const projectName = useMemo(
     () => projects.find((p) => p.id === contract?.projectId)?.name,
     [projects, contract],
@@ -315,7 +325,12 @@ function ContractEditorContent() {
             Preencha as informações do contrato. O documento é gerado
             automaticamente a partir deste template em português.
           </p>
-          <ContractTemplateForm value={template} onChange={setTemplate} />
+          <ContractTemplateForm
+            value={template}
+            onChange={setTemplate}
+            clients={clients}
+            linkedClient={linkedClient}
+          />
           <Button type="submit" disabled={saving} className="mt-6">
             {saving ? "Salvando..." : "Salvar template"}
           </Button>

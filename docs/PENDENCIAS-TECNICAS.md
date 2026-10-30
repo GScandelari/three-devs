@@ -12,6 +12,7 @@ remova-o deste arquivo na mesma PR da correção.
 | 4 | [Índices do Firestore fora do `firestore.indexes.json`](#4-índices-do-firestore-fora-do-firestoreindexesjson) | Baixa | Aberta |
 | 5 | [Política de TTL para `passwordTokens`](#5-política-de-ttl-para-passwordtokens) | Baixa | Aberta |
 | 6 | [Clientes antigos com e-mail em maiúsculas](#6-clientes-antigos-com-e-mail-em-maiúsculas) | Baixa | Aberta |
+| 7 | [CNPJ da prestadora zerado nos contratos](#7-cnpj-da-prestadora-zerado-nos-contratos) | **Alta** antes de enviar contratos reais | Aberta |
 
 ---
 
@@ -213,3 +214,28 @@ senha" nem na limpeza do flag `mustChangePassword`.
 ### Critério de conclusão
 
 - [ ] Nenhum documento de `clients` com e-mail em maiúsculas.
+
+---
+
+## 7. CNPJ da prestadora zerado nos contratos
+
+**Prioridade:** alta antes de enviar contratos reais.
+
+### Contexto
+
+O campo "Documento da prestadora (CNPJ)" é preenchido pelo sistema em todos os
+contratos e não pode ser editado no formulário. Como a empresa ainda não tem
+CNPJ, o valor é `00.000.000/0000-00`, e ele aparece **impresso no PDF** enviado
+ao cliente.
+
+### Como resolver
+
+1. Atualizar a constante `AGENCY_DOCUMENT` em `src/lib/contracts/template.ts`.
+2. Publicar o frontend (merge na `main`).
+3. Abrir e salvar os contratos ainda não assinados: ao abrir, o editor aplica
+   o valor novo. Contratos já salvos guardam o valor antigo até serem salvos de novo.
+
+### Critério de conclusão
+
+- [ ] `AGENCY_DOCUMENT` com o CNPJ real.
+- [ ] Contratos pendentes salvos novamente com o CNPJ correto.

@@ -2,9 +2,13 @@ import type { ContractTemplateData } from "@/lib/types";
 
 export type { ContractTemplateData };
 
+// CNPJ da prestadora usado em todos os contratos. Ainda não há CNPJ: fica
+// zerado até ser definido aqui (veja docs/PENDENCIAS-TECNICAS.md).
+export const AGENCY_DOCUMENT = "00.000.000/0000-00";
+
 export const EMPTY_CONTRACT_TEMPLATE: ContractTemplateData = {
   agencyName: "Three Devs",
-  agencyDocument: "",
+  agencyDocument: AGENCY_DOCUMENT,
   agencyEmail: "contato@three-devs.com",
   clientName: "",
   clientDocument: "",
@@ -30,6 +34,44 @@ export const EMPTY_CONTRACT_TEMPLATE: ContractTemplateData = {
   jurisdiction: "Brasil",
   leadDeveloperName: "",
 };
+
+// Data de conclusão = início + prazo em meses, menos um dia (o período inclui
+// o dia de início). Ex.: 01/11/2026 + 3 meses → 31/01/2027. Se o dia não
+// existir no mês final (31/01 + 1 mês), usa o último dia desse mês antes de
+// subtrair. Retorna "" se o início ou o prazo forem inválidos.
+export function calculateConclusionDate(
+  commencementDate: string,
+  termMonths: string,
+): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(commencementDate.trim());
+  const months = Number(termMonths);
+  if (!match || !Number.isInteger(months) || months < 1) return "";
+
+  const year = Number(match[1]);
+  const month = Number(match[2]) - 1 + months;
+  const day = Number(match[3]);
+  const lastDayOfMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  const end = new Date(Date.UTC(year, month, Math.min(day, lastDayOfMonth)));
+  end.setUTCDate(end.getUTCDate() - 1);
+  return end.toISOString().slice(0, 10);
+}
+
+// Campos que o sistema controla: CNPJ da prestadora, desenvolvedor responsável
+// (quem cria o contrato; contratos antigos mantêm o já gravado) e conclusão
+// calculada pelo início + prazo.
+export function applySystemFields(
+  data: ContractTemplateData,
+  currentDeveloperName: string,
+): ContractTemplateData {
+  return {
+    ...data,
+    agencyDocument: AGENCY_DOCUMENT,
+    leadDeveloperName: data.leadDeveloperName.trim() || currentDeveloperName,
+    conclusionDate:
+      calculateConclusionDate(data.commencementDate, data.termMonths) ||
+      data.conclusionDate,
+  };
+}
 
 export function buildContractTitle(data: ContractTemplateData): string {
   const project = data.projectName || "projeto";
