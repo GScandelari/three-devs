@@ -2,18 +2,16 @@
 
 Itens conhecidos que ainda precisam de verificação ou correção. Cada item traz
 contexto, como verificar e quando considerá-lo resolvido. Ao concluir um item,
-remova-o deste arquivo na mesma PR da correção.
+remova-o deste arquivo na mesma PR da correção e registre-o em
+[Concluídas](#concluídas). Os números não são reaproveitados.
 
 | # | Pendência | Prioridade | Status |
 |---|-----------|------------|--------|
 | 1 | [Remetente dos e-mails não entrega aos clientes](#1-remetente-dos-e-mails-não-entrega-aos-clientes) | **Alta** | Aberta |
 | 2 | [Respostas dos clientes para `serifa.labs@gmail.com` (`reply_to`)](#2-respostas-dos-clientes-para-serifalabsgmailcom-reply_to) | Média | Aberta, depende da #1 |
 | 3 | [Functions e regras do Firestore fora do deploy automático](#3-functions-e-regras-do-firestore-fora-do-deploy-automático) | Média | Aberta |
-| 4 | [Índices do Firestore fora do `firestore.indexes.json`](#4-índices-do-firestore-fora-do-firestoreindexesjson) | Média | Aberta, investigada em 30/10/2026 |
-| 5 | [Política de TTL para `passwordTokens`](#5-política-de-ttl-para-passwordtokens) | Baixa | Aberta |
 | 6 | [Clientes antigos com e-mail em maiúsculas](#6-clientes-antigos-com-e-mail-em-maiúsculas) | Baixa | Aberta |
 | 7 | [CNPJ da prestadora zerado nos contratos](#7-cnpj-da-prestadora-zerado-nos-contratos) | **Alta** antes de enviar contratos reais | Aberta |
-| 8 | [CI usa Node.js 20, já fora de suporte](#8-ci-usa-nodejs-20-já-fora-de-suporte) | Média | Aberta |
 | 9 | [Clientes sem CPF/CNPJ no cadastro](#9-clientes-sem-cpfcnpj-no-cadastro) | Média | Aberta |
 | 10 | [Bloqueio do projeto sem contrato só na interface](#10-bloqueio-do-projeto-sem-contrato-só-na-interface) | Baixa | Aberta |
 | 11 | [Expiração por inatividade só no navegador](#11-expiração-por-inatividade-só-no-navegador) | Baixa | Aberta |
@@ -157,76 +155,6 @@ Outros pontos do deploy manual:
 
 ---
 
-## 4. Índices do Firestore fora do `firestore.indexes.json`
-
-**Prioridade:** média, por risco de apagar a política de TTL dos avisos.
-
-### Contexto
-
-No deploy de 29/10/2026, a CLI avisou que o projeto tem **1 índice composto e
-1 configuração de campo (field override)** que não estão no
-`firestore.indexes.json`, que está vazio. Nada foi apagado.
-
-### Investigação (30/10/2026)
-
-Saída de `npm run firebase -- firestore:indexes` comparada com o arquivo:
-
-| Item no projeto | Está em uso? | O que fazer |
-|---|---|---|
-| Field override `notifications.expiresAt` com **`ttl: true`** | **Sim.** É a política de TTL que apaga os avisos vencidos do sininho (veja `docs/FLUXO.md`). | **Adicionar ao arquivo.** Um deploy com `--force` apagaria a política, e os avisos vencidos passariam a se acumular. |
-| Índice composto `projects`: `clientId` ASC, `updatedAt` DESC | **Aparentemente não.** Nenhuma consulta do código usa `orderBy`: o portal busca por `clientId` e ordena no navegador. | Remover pelo console ou com `--force`, depois de incluir o TTL no arquivo. Se preferir manter, adicione-o ao arquivo. |
-
-Trecho a incluir em `firestore.indexes.json` para a política de TTL (é o que o
-projeto já tem hoje):
-
-```json
-"fieldOverrides": [
-  {
-    "collectionGroup": "notifications",
-    "fieldPath": "expiresAt",
-    "ttl": true,
-    "indexes": [
-      { "order": "ASCENDING", "queryScope": "COLLECTION" },
-      { "order": "DESCENDING", "queryScope": "COLLECTION" },
-      { "arrayConfig": "CONTAINS", "queryScope": "COLLECTION" }
-    ]
-  }
-]
-```
-
-Se a pendência [5](#5-política-de-ttl-para-passwordtokens) for resolvida pelo
-arquivo, a política de `passwordTokens.expiresAt` entra nessa mesma lista.
-
-### Critério de conclusão
-
-- [ ] TTL de `notifications.expiresAt` declarado em `firestore.indexes.json`.
-- [ ] Índice de `projects` removido ou declarado no arquivo.
-- [ ] O deploy das regras não mostra mais o aviso de índices fora do arquivo.
-
----
-
-## 5. Política de TTL para `passwordTokens`
-
-**Prioridade:** baixa.
-
-### Contexto
-
-Os links de definição e redefinição de senha ficam em `passwordTokens/{uid}`,
-com o campo `expiresAt`. Links usados são apagados, mas os vencidos que nunca
-foram usados continuam na coleção. Eles não funcionam, porque a validade é
-conferida na function, mas acumulam documentos.
-
-### Como resolver
-
-Firebase Console → Firestore → **TTL** → criar uma política para a coleção
-`passwordTokens`, campo `expiresAt`.
-
-### Critério de conclusão
-
-- [ ] Política de TTL ativa para `passwordTokens.expiresAt`.
-
----
-
 ## 6. Clientes antigos com e-mail em maiúsculas
 
 **Prioridade:** baixa.
@@ -274,32 +202,6 @@ ao cliente.
 
 - [ ] `AGENCY_DOCUMENT` com o CNPJ real.
 - [ ] Contratos pendentes salvos novamente com o CNPJ correto.
-
----
-
-## 8. CI usa Node.js 20, já fora de suporte
-
-**Prioridade:** média.
-
-### Contexto
-
-Os workflows `.github/workflows/deploy.yml` e `.github/workflows/test-rules.yml`
-usam `node-version: "20"`. O Node.js 20 saiu de suporte em 30/04/2026 e não
-recebe mais correções de segurança. Hoje o build funciona, mas é o mesmo tipo de
-problema que bloqueou o deploy das functions em 30/10/2026 (veja o item
-[3](#3-functions-e-regras-do-firestore-fora-do-deploy-automático)): um dia a
-ferramenta deixa de aceitar a versão e o deploy para sem aviso prévio no
-repositório.
-
-### Como resolver
-
-- Trocar `node-version` para `"24"` nos dois workflows, alinhado com as functions.
-- Abrir uma PR: o deploy de preview e os testes de regras validam a troca antes
-  do merge.
-
-### Critério de conclusão
-
-- [ ] Os dois workflows usam Node.js 24 e passam na PR.
 
 ---
 
@@ -405,3 +307,13 @@ problema. Ele continua para links antigos e acessos diretos.
 - [ ] Acessos a `three-devs.web.app` e `three-devs.firebaseapp.com` terminam em
       `serifalabs.com`, ou fica decidido e documentado que os dois endereços
       continuam ativos.
+
+---
+
+## Concluídas
+
+| # | Pendência | Resolvida em |
+|---|-----------|--------------|
+| 4 | Índices do Firestore fora do `firestore.indexes.json`: TTL de `notifications` declarado no arquivo; índice sem uso de `projects` removido | 30/10/2026 |
+| 5 | Política de TTL para `passwordTokens` (declarada em `firestore.indexes.json`) | 30/10/2026 |
+| 8 | CI usa Node.js 20: workflows passaram para Node.js 24 | 30/10/2026 |
