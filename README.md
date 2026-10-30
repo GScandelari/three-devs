@@ -124,46 +124,83 @@ Consulte o passo a passo completo em
 
 ## Deploy automático (GitHub Actions)
 
-Secrets necessários em **Settings → Secrets**:
+**Todo o deploy é feito pelo CI. Ninguém precisa publicar nada à mão:** o merge
+na `main` publica tudo, e a PR valida antes.
+
+| Evento | O que acontece |
+|---|---|
+| PR aberta ou atualizada | Build, testes das functions, **validação** de regras, índices e functions sem publicar (`--dry-run`) e site num canal de preview (3 dias) |
+| Merge na `main` | Publica, nesta ordem: regras e índices do Firestore → Cloud Functions → site |
+
+Se uma etapa falhar, as seguintes não rodam: o site novo nunca vai ao ar antes
+das functions e regras de que ele depende. Dois merges seguidos publicam um de
+cada vez. O repositório é a fonte da verdade: functions removidas do código e
+índices fora do `firestore.indexes.json` são apagados no deploy (`--force`).
+
+### Configuração no GitHub
+
+**Settings → Secrets and variables → Actions**
+
+Secrets:
 
 - `FIREBASE_PROJECT_ID`
-- `FIREBASE_SERVICE_ACCOUNT`
+- `FIREBASE_SERVICE_ACCOUNT` (JSON da conta de serviço do deploy)
 - `NEXT_PUBLIC_FIREBASE_*` (6 variáveis)
 
-O workflow publica **apenas o hosting**: em produção a cada push na `main` e
-num canal de preview (válido por 3 dias) em cada PR. Assim, erros de build ou
-de permissão aparecem na PR, antes do merge.
+Variables (parâmetros das functions, não são segredos):
 
-### Versões fixadas
+| Variável | Valor atual | Uso |
+|---|---|---|
+| `CONTRACT_EMAIL_FROM` | `Three Devs <onboarding@resend.dev>` | Remetente dos e-mails |
+| `APP_URL` | `https://serifalabs.com` | Domínio dos links nos e-mails |
 
-- A versão da CLI usada no CI é a de `firebase-tools` em `devDependencies` do
-  `package.json` (sem `^`). Para atualizar, rode
-  `npm install -D --save-exact firebase-tools@<versão>` e abra uma PR: o deploy
-  de preview valida a versão nova antes de ela chegar à produção.
-- A action `FirebaseExtended/action-hosting-deploy` está fixada por SHA de commit.
+Para mudar um desses valores, edite a variável e rode o workflow de novo
+(**Actions → Deploy to Firebase → Run workflow**, na `main`). A
+`RESEND_API_KEY` continua no Secret Manager do Google Cloud (veja
+[CONFIGURACAO-RESEND.md](docs/CONFIGURACAO-RESEND.md)).
 
 ### Papéis da conta de serviço (`FIREBASE_SERVICE_ACCOUNT`)
 
 No Google Cloud Console → **IAM**, a conta de serviço do deploy precisa de:
 
-- **Firebase Hosting Admin** (`roles/firebasehosting.admin`);
-- **Service Usage Consumer** (`roles/serviceusage.serviceUsageConsumer`):
-  exigido a partir do `firebase-tools` 15.34, que confere se a API do Hosting
-  está habilitada. Sem ele o deploy falha com
-  `403 Permission denied to get service [firebasehosting.googleapis.com]`.
+| Papel | Para quê |
+|---|---|
+| Firebase Hosting Admin (`roles/firebasehosting.admin`) | Publicar o site |
+| Service Usage Consumer (`roles/serviceusage.serviceUsageConsumer`) | Conferir se as APIs estão habilitadas (exigido desde o `firebase-tools` 15.34) |
+| Cloud Functions Admin (`roles/cloudfunctions.admin`) | Publicar as functions |
+| Service Account User (`roles/iam.serviceAccountUser`) | Publicar functions que rodam com a conta de serviço padrão do projeto |
+| Secret Manager Admin (`roles/secretmanager.admin`) | Ligar a `RESEND_API_KEY` às functions |
+| Firebase Rules Admin (`roles/firebaserules.admin`) | Publicar `firestore.rules` |
+| Cloud Datastore Index Admin (`roles/datastore.indexAdmin`) | Publicar índices e políticas de TTL |
 
-Mantenha também os papéis criados pelo `firebase init hosting:github`.
+Mantenha também os papéis criados pelo `firebase init hosting:github`. Se
+faltar algum papel, a etapa de validação da PR falha com uma mensagem
+`Permission denied` que cita a permissão ausente.
 
-### Functions e regras do Firestore (deploy manual)
+### Versões fixadas
 
-Cloud Functions e `firestore.rules` **não** são publicadas pelo CI. Quando uma
-mudança depender delas, publique-as **antes** do merge que leva o frontend ao ar:
+- A versão da CLI usada no CI é a de `firebase-tools` em `devDependencies` do
+  `package.json` (sem `^`). Para atualizar, rode
+  `npm install -D --save-exact firebase-tools@<versão>` e abra uma PR: a
+  validação e o deploy de preview testam a versão nova antes da produção.
+- A action `FirebaseExtended/action-hosting-deploy` está fixada por SHA de commit.
+- Runtime das functions: Node.js 24 (`functions/package.json`). O CI também usa Node.js 24.
+
+### Deploy manual (só em emergência)
+
+Se o GitHub Actions estiver indisponível:
 
 ```powershell
 npm run firebase -- login
+npm ci
 npm ci --prefix functions
-npm run firebase -- deploy --only functions,firestore
+npm run build   # requer .env.local com as variáveis NEXT_PUBLIC_FIREBASE_*
+# functions/.env.three-devs com os mesmos valores das variáveis do GitHub
+npm run firebase -- deploy --only firestore,functions,hosting
 ```
+
+Depois, confira se a `main` está igual ao que foi publicado: o próximo merge
+publica de novo a partir do repositório.
 
 ## Roadmap
 

@@ -162,41 +162,29 @@ Além do secret, as funções usam estes parâmetros:
 | `CONTRACT_EMAIL_FROM` | `Three Devs <contratos@seudominio.com>` | Remetente do e-mail |
 | `APP_URL` | `https://serifalabs.com` | Link para o portal incluído no e-mail |
 
-`CONTRACT_EMAIL_FROM` será solicitado no primeiro deploy. Informe o nome e o
-endereço completo, incluindo os sinais `<` e `>`:
+Os dois parâmetros são **variáveis do repositório no GitHub**: **Settings →
+Secrets and variables → Actions → Variables**. A cada deploy, o CI gera o
+arquivo `functions/.env.three-devs` a partir delas. Informe o remetente com o
+nome e o endereço completo, incluindo os sinais `<` e `>`:
 
 ```text
 Three Devs <contratos@seudominio.com>
 ```
 
-`APP_URL` já possui `https://serifalabs.com`, o domínio oficial do site, como
-valor padrão. Use sempre o domínio oficial: o login fica guardado por domínio,
-então links para `three-devs.web.app` deixariam o cliente logado no endereço
-errado. Se o domínio mudar, atualize esse parâmetro e publique as functions.
+Em `APP_URL`, use sempre o domínio oficial, `https://serifalabs.com`: o login
+fica guardado por domínio, então links para `three-devs.web.app` deixariam o
+cliente logado no endereço errado.
 
-Caso prefira declarar os parâmetros antes do deploy, crie localmente o arquivo
-`functions/.env.three-devs` com o conteúdo abaixo:
-
-```dotenv
-CONTRACT_EMAIL_FROM="Three Devs <contratos@seudominio.com>"
-APP_URL=https://serifalabs.com
-```
-
-Esse arquivo corresponde a uma configuração local do projeto e está coberto
-pelas regras de `.gitignore` para arquivos `.env*`. Mesmo assim, confira o
-`git status` antes de qualquer commit.
+O arquivo `functions/.env.three-devs` só precisa existir localmente no deploy
+manual de emergência (veja o `README.md`). Ele está coberto pelas regras de
+`.gitignore` para arquivos `.env*`.
 
 ## 7. Publicar as Cloud Functions
 
-Execute:
-
-```powershell
-npm run firebase -- deploy --only functions
-```
-
-No primeiro deploy, a CLI pode solicitar o valor de
-`CONTRACT_EMAIL_FROM`. Confirme também o valor de `APP_URL`, caso seja
-perguntado.
+As functions são publicadas pelo GitHub Actions a cada merge na `main`, junto
+com as regras do Firestore e o site. Para publicar sem um merge (por exemplo,
+depois de trocar uma variável ou a `RESEND_API_KEY`), rode **Actions → Deploy
+to Firebase → Run workflow** na `main`.
 
 O deploy deve publicar ou atualizar estas funções:
 
@@ -214,8 +202,9 @@ mesmo remetente `CONTRACT_EMAIL_FROM` dos contratos. Os links ficam na coleção
 substitui o anterior. Opcionalmente, crie uma política de TTL do Firestore no
 campo `expiresAt` dessa coleção para apagar links vencidos que nunca foram usados.
 
-Depois de alterar `RESEND_API_KEY`, sempre faça um novo deploy da função que
-usa o secret. Para publicar apenas o envio de e-mail:
+Depois de alterar `RESEND_API_KEY`, sempre publique as functions de novo
+(**Run workflow**, como acima). Em emergência, com a CLI logada, dá para
+publicar apenas o envio de e-mail:
 
 ```powershell
 npm run firebase -- deploy --only functions:sendContractEmail
