@@ -4,7 +4,11 @@ const { initializeApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 const { getFirestore, Timestamp } = require("firebase-admin/firestore");
 const { buildContractPdf, safeFilename } = require("./contract-pdf");
-const { buildContractEmailHtml, makeIdempotencyKey } = require("./contract-email");
+const {
+  buildContractEmailHtml,
+  buildReplyToField,
+  makeIdempotencyKey,
+} = require("./contract-email");
 const { getContractValidationProblem } = require("./contract-validation");
 const {
   MIN_PASSWORD_LENGTH,
@@ -24,6 +28,8 @@ const contractEmailFrom = defineString("CONTRACT_EMAIL_FROM");
 const appUrl = defineString("APP_URL", {
   default: "https://serifalabs.com",
 });
+// Opcional: endereço que recebe as respostas dos clientes (reply_to).
+const emailReplyTo = defineString("EMAIL_REPLY_TO", { default: "" });
 
 async function assertDeveloper(uid) {
   if (!uid) {
@@ -106,7 +112,7 @@ exports.sendContractEmail = onCall(
       throw new HttpsError("invalid-argument", "Identificador de envio inválido.");
     }
 
-    const { apiKey, sender } = readEmailConfig();
+    const { apiKey, sender, replyTo } = readEmailConfig();
 
     try {
       const pdf = await buildContractPdf(contract);
@@ -121,6 +127,7 @@ exports.sendContractEmail = onCall(
         body: JSON.stringify({
           from: sender,
           to: [recipient],
+          ...replyTo,
           subject: `Contrato para assinatura - ${contract.template.projectName}`,
           html: buildContractEmailHtml(contract, appUrl.value()),
           attachments: [
@@ -182,11 +189,11 @@ function readEmailConfig() {
       "O envio de e-mail ainda não está configurado.",
     );
   }
-  return { apiKey, sender };
+  return { apiKey, sender, replyTo: buildReplyToField(emailReplyTo.value()) };
 }
 
 async function sendEmail({ to, subject, html }) {
-  const { apiKey, sender } = readEmailConfig();
+  const { apiKey, sender, replyTo } = readEmailConfig();
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     signal: AbortSignal.timeout(20_000),
@@ -194,7 +201,7 @@ async function sendEmail({ to, subject, html }) {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ from: sender, to: [to], subject, html }),
+    body: JSON.stringify({ from: sender, to: [to], ...replyTo, subject, html }),
   });
 
   if (!response.ok) {

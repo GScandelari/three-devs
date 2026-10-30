@@ -7,13 +7,12 @@ remova-o deste arquivo na mesma PR da correção e registre-o em
 
 | # | Pendência | Prioridade | Status |
 |---|-----------|------------|--------|
-| 1 | [Remetente dos e-mails não entrega aos clientes](#1-remetente-dos-e-mails-não-entrega-aos-clientes) | **Alta** | Aberta |
-| 2 | [Respostas dos clientes para `serifa.labs@gmail.com` (`reply_to`)](#2-respostas-dos-clientes-para-serifalabsgmailcom-reply_to) | Média | Aberta, depende da #1 |
-| 7 | [CNPJ da prestadora zerado nos contratos](#7-cnpj-da-prestadora-zerado-nos-contratos) | **Alta** antes de enviar contratos reais | Aberta |
+| 1 | [Remetente dos e-mails não entrega aos clientes](#1-remetente-dos-e-mails-não-entrega-aos-clientes) | **Alta** | Aberta, com outro dev |
+| 7 | [CNPJ da prestadora zerado nos contratos](#7-cnpj-da-prestadora-zerado-nos-contratos) | **Alta** antes de enviar contratos reais | Adiada: aguardando o CNPJ da empresa |
 | 9 | [Clientes sem CPF/CNPJ no cadastro](#9-clientes-sem-cpfcnpj-no-cadastro) | Média | Aberta |
-| 10 | [Bloqueio do projeto sem contrato só na interface](#10-bloqueio-do-projeto-sem-contrato-só-na-interface) | Baixa | Aberta |
-| 11 | [Expiração por inatividade só no navegador](#11-expiração-por-inatividade-só-no-navegador) | Baixa | Aberta |
-| 12 | [`three-devs.web.app` não redireciona para `serifalabs.com`](#12-three-devswebapp-não-redireciona-para-serifalabscom) | Baixa | Aberta, não investigada |
+| 10 | [Bloqueio do projeto sem contrato só na interface](#10-bloqueio-do-projeto-sem-contrato-só-na-interface) | Baixa | Adiada |
+| 11 | [Expiração por inatividade só no navegador](#11-expiração-por-inatividade-só-no-navegador) | Baixa | Adiada |
+| 12 | [`three-devs.web.app` não redireciona para `serifalabs.com`](#12-three-devswebapp-não-redireciona-para-serifalabscom) | Baixa | Adiada, não investigada |
 
 ---
 
@@ -45,9 +44,9 @@ Consequências:
 
 O endereço desejado para contato é `serifa.labs@gmail.com`, mas ele **não pode
 ser o remetente**. A Resend só envia de domínios verificados por DNS
-(SPF/DKIM), e não é possível verificar `gmail.com`. Veja a pendência
-[#2](#2-respostas-dos-clientes-para-serifalabsgmailcom-reply_to) para receber
-as respostas nesse endereço.
+(SPF/DKIM), e não é possível verificar `gmail.com`. As respostas dos clientes
+já vão para esse endereço pelo `reply_to` (variável `EMAIL_REPLY_TO`; veja
+[Concluídas](#concluídas), item 2), qualquer que seja o remetente.
 
 ### Como verificar
 
@@ -79,32 +78,9 @@ O valor publicado aparece no Google Cloud Console → **Cloud Run functions** �
 - [ ] E-mail de boas-vindas recebido por um endereço que não é o dono da conta Resend.
 - [ ] "Esqueci minha senha" recebido e link funcionando.
 - [ ] Contrato de teste recebido com o PDF anexado.
+- [ ] Responder a um desses e-mails envia a resposta para `serifa.labs@gmail.com`
+      (o `reply_to` já está ativo; veja Concluídas, item 2).
 - [ ] Item removido do roadmap no `README.md`.
-
----
-
-## 2. Respostas dos clientes para `serifa.labs@gmail.com` (`reply_to`)
-
-**Prioridade:** média. Depende da [#1](#1-remetente-dos-e-mails-não-entrega-aos-clientes).
-
-### Contexto
-
-Com um remetente como `contato@serifalabs.com`, as respostas dos clientes vão
-para esse endereço. Se a equipe quiser recebê-las em `serifa.labs@gmail.com`,
-os e-mails precisam do campo `reply_to` da Resend. **Isso ainda não está
-implementado.**
-
-### Como resolver
-
-- Em `functions/index.js`, incluir `reply_to` no corpo enviado à Resend, tanto
-  em `sendEmail` (boas-vindas e redefinição) quanto em `sendContractEmail`.
-- Preferir um parâmetro novo (por exemplo `EMAIL_REPLY_TO`, com `defineString`)
-  a deixar o endereço fixo no código.
-- Atualizar `CONFIGURACAO-RESEND.md` (seção 6) com o parâmetro novo.
-
-### Critério de conclusão
-
-- [ ] Responder a um e-mail de teste envia a resposta para `serifa.labs@gmail.com`.
 
 ---
 
@@ -242,6 +218,7 @@ problema. Ele continua para links antigos e acessos diretos.
 
 | # | Pendência | Resolvida em |
 |---|-----------|--------------|
+| 2 | Respostas dos clientes para `serifa.labs@gmail.com`: e-mails de contrato, boas-vindas e redefinição de senha enviam `reply_to` com a variável `EMAIL_REPLY_TO` do GitHub. O teste de resposta real fica junto com o item 1 | 30/10/2026 |
 | 3 | Functions e regras do Firestore fora do deploy automático: o CI passou a publicar regras, índices, functions e site, nessa ordem, com validação `--dry-run` nas PRs; parâmetros das functions vêm das variáveis do GitHub | 30/10/2026 |
 | 4 | Índices do Firestore fora do `firestore.indexes.json`: TTL de `notifications` declarado no arquivo; índice sem uso de `projects` removido | 30/10/2026 |
 | 5 | Política de TTL para `passwordTokens` (declarada em `firestore.indexes.json`) | 30/10/2026 |

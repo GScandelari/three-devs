@@ -65,6 +65,7 @@ jobs:
         env:
           CONTRACT_EMAIL_FROM: ${{ vars.CONTRACT_EMAIL_FROM }}
           APP_URL: ${{ vars.APP_URL }}
+          EMAIL_REPLY_TO: ${{ vars.EMAIL_REPLY_TO }}
         run: |
           if [ -z "$CONTRACT_EMAIL_FROM" ] || [ -z "$APP_URL" ]; then
             echo "::error::Defina as variáveis CONTRACT_EMAIL_FROM e APP_URL do repositório (Settings → Secrets and variables → Actions → Variables)."
@@ -73,6 +74,8 @@ jobs:
           {
             printf 'CONTRACT_EMAIL_FROM="%s"\n' "$CONTRACT_EMAIL_FROM"
             printf 'APP_URL=%s\n' "$APP_URL"
+            # Opcional: vazio, as respostas dos clientes vão para o remetente.
+            printf 'EMAIL_REPLY_TO=%s\n' "$EMAIL_REPLY_TO"
           } > "functions/.env.$FIREBASE_PROJECT"
 
       # A CLI do package.json (versão fixada) autentica com a mesma conta de

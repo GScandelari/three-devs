@@ -153,6 +153,7 @@ Variables (parâmetros das functions, não são segredos):
 |---|---|---|
 | `CONTRACT_EMAIL_FROM` | `Three Devs <onboarding@resend.dev>` | Remetente dos e-mails |
 | `APP_URL` | `https://serifalabs.com` | Domínio dos links nos e-mails |
+| `EMAIL_REPLY_TO` | `serifa.labs@gmail.com` | Opcional: recebe as respostas dos clientes aos e-mails |
 
 Para mudar um desses valores, edite a variável e rode o workflow de novo
 (**Actions → Deploy to Firebase → Run workflow**, na `main`). A
