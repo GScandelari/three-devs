@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { completePasswordReset } from "@/lib/firebase/admin-api";
 import { signOut } from "@/lib/firebase/auth";
 import { Button, LinkButton } from "@/components/ui/Button";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 // Página aberta pelos links dos e-mails de boas-vindas (72 h) e de
 // redefinição de senha (30 min). A validade é conferida pela Cloud Function.
@@ -149,13 +150,13 @@ function Field({
   return (
     <div>
       <label className="block text-sm font-medium text-slate-700">{label}</label>
-      <input
-        type="password"
+      <PasswordInput
         required
         autoComplete="new-password"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+        wrapperClassName="mt-1"
+        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
       />
     </div>
   );

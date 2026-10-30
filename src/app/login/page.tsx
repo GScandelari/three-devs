@@ -11,6 +11,7 @@ import {
 import { resolvePostLoginRoute } from "@/contexts/AuthContext";
 import { getFirebaseAuth } from "@/lib/firebase/config";
 import { Button } from "@/components/ui/Button";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 // Mesma mensagem para senha errada e para conta sem cadastro de cliente: a tela
 // não confirma se o e-mail existe.
@@ -113,13 +114,14 @@ function LoginForm() {
               >
                 Senha
               </label>
-              <input
+              <PasswordInput
                 id="password"
-                type="password"
                 required
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                wrapperClassName="mt-1"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
               />
               <div className="mt-2 text-right">
                 <Link
