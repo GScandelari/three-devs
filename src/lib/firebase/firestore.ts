@@ -364,6 +364,7 @@ export async function createProject(data: {
   clientId: string;
   name: string;
   description: string;
+  objective: string;
   leadDeveloperId: string;
   leadDeveloperName: string;
 }): Promise<string> {
@@ -375,6 +376,7 @@ export async function createProject(data: {
     clientId: data.clientId,
     name: data.name,
     description: data.description,
+    objective: data.objective,
     status: "pending_contract" as ProjectStatus,
     leadDeveloperId: data.leadDeveloperId,
     leadDeveloperName: data.leadDeveloperName,
@@ -386,6 +388,17 @@ export async function createProject(data: {
   });
 
   return id;
+}
+
+export async function updateProjectInfo(
+  projectId: string,
+  data: { description: string; objective: string },
+) {
+  await updateDoc(doc(dbOrThrow(), "projects", projectId), {
+    description: data.description,
+    objective: data.objective,
+    updatedAt: new Date().toISOString(),
+  });
 }
 
 export async function updateProjectStatus(

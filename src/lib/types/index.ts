@@ -90,6 +90,8 @@ export interface Project {
   clientId: string;
   name: string;
   description: string;
+  // Opcional: projetos criados antes do campo existir não o têm.
+  objective?: string;
   status: ProjectStatus;
   leadDeveloperId: DeveloperId;
   leadDeveloperName: string;
