@@ -7,6 +7,7 @@ import {
   deleteNotifications,
   getNotificationsByClientId,
 } from "@/lib/firebase/firestore";
+import { getMissingClientFields } from "@/lib/clients";
 import type { ClientNotification } from "@/lib/types";
 
 const MAX_VISIBLE = 20;
@@ -84,10 +85,16 @@ export function NotificationBell() {
   }, [open]);
 
   // Desenvolvedores em "Ver portal" não têm registro de cliente.
-  if (!clientId) return null;
+  if (!client || !clientId) return null;
+
+  // Lembrete calculado a partir do cadastro, não gravado no Firestore: fica no
+  // topo enquanto faltarem dados e some sozinho quando o cliente completa.
+  const missingFields = getMissingClientFields(client);
+  const hasProfileReminder = missingFields.length > 0;
 
   // Todo aviso na lista ainda não foi visualizado: ao ser clicado, é excluído.
-  const count = notifications?.length ?? 0;
+  const storedCount = notifications?.length ?? 0;
+  const count = storedCount + (hasProfileReminder ? 1 : 0);
   const visible = (notifications ?? []).slice(0, MAX_VISIBLE);
 
   // Mensagem exibida no lugar da lista: erro, carregando ou nenhum aviso.
@@ -102,7 +109,7 @@ export function NotificationBell() {
     statusMessage = (
       <p className="px-4 py-6 text-sm text-slate-500">Carregando...</p>
     );
-  } else if (visible.length === 0) {
+  } else if (visible.length === 0 && !hasProfileReminder) {
     statusMessage = (
       <p className="px-4 py-6 text-sm text-slate-500">Nenhum aviso novo.</p>
     );
@@ -142,8 +149,13 @@ export function NotificationBell() {
     }
   }
 
+  function handleOpenProfileReminder() {
+    setOpen(false);
+    router.push("/portal/profile");
+  }
+
   async function handleClearAll() {
-    if (clearing || count === 0) return;
+    if (clearing || storedCount === 0) return;
     setActionError("");
     setClearing(true);
 
@@ -194,6 +206,28 @@ export function NotificationBell() {
             Avisos
           </h2>
 
+          {hasProfileReminder && (
+            <button
+              type="button"
+              onClick={handleOpenProfileReminder}
+              className="flex w-full items-start gap-3 border-b border-slate-100 bg-amber-50/60 px-4 py-3 text-left transition-colors hover:bg-amber-50"
+            >
+              <span
+                aria-hidden="true"
+                className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-amber-500"
+              />
+              <span className="min-w-0">
+                <span className="block text-sm font-medium text-slate-900">
+                  Complete seus dados: falta {missingFields.join(" e ")}
+                </span>
+                <span className="mt-0.5 block text-xs text-slate-500">
+                  Essas informações são necessárias para a confecção do
+                  contrato.
+                </span>
+              </span>
+            </button>
+          )}
+
           {statusMessage ?? (
             <ul className="max-h-96 overflow-y-auto">
               {visible.map((notification) => (
@@ -232,7 +266,7 @@ export function NotificationBell() {
             </p>
           )}
 
-          {count > 0 && !loadError && (
+          {storedCount > 0 && !loadError && (
             <div className="border-t border-slate-100 px-4 py-2">
               <button
                 type="button"

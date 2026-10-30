@@ -26,10 +26,15 @@ export function PortalHeader() {
         {/* relative: o painel do NotificationBell se alinha à borda direita deste grupo. */}
         <div className="relative flex items-center gap-4">
           <NotificationBell />
-          {client?.name && (
-            <span className="hidden text-sm text-slate-600 sm:block">
-              {client.name}
-            </span>
+          {client && (
+            <Link
+              href="/portal/profile"
+              className="text-sm text-slate-600 transition-colors hover:text-slate-900"
+              title="Meus dados"
+            >
+              <span className="hidden sm:inline">{client.name || "Meus dados"}</span>
+              <span className="sm:hidden">Meus dados</span>
+            </Link>
           )}
           <button
             onClick={handleSignOut}

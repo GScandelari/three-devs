@@ -27,6 +27,8 @@ interface AuthContextValue {
   hasPortalAccess: boolean;
   loading: boolean;
   firebaseConfigured: boolean;
+  // Relê o cadastro do cliente (ex.: depois de ele editar os próprios dados).
+  refreshClient: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -37,6 +39,7 @@ const AuthContext = createContext<AuthContextValue>({
   hasPortalAccess: false,
   loading: true,
   firebaseConfigured: false,
+  refreshClient: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -132,6 +135,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [user]);
 
+  async function refreshClient() {
+    if (!user?.email) return;
+    setClient(await getClientByEmail(user.email));
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -142,6 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         hasPortalAccess,
         loading,
         firebaseConfigured,
+        refreshClient,
       }}
     >
       {children}
