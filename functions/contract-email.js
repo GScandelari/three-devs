@@ -36,8 +36,9 @@ function buildContractEmailHtml(contract, configuredAppUrl) {
       <h1 style="font-size:24px;line-height:1.25;margin:12px 0">Seu contrato está pronto</h1>
       <p>Olá, ${escapeHtml(template.clientName)}.</p>
       <p>Segue em anexo o contrato de prestação de serviços referente ao projeto <strong>${escapeHtml(template.projectName)}</strong>.</p>
-      <p>Revise o documento e responda este e-mail caso tenha alguma dúvida. O acesso ao portal será liberado depois que a assinatura for confirmada.</p>
-      <p style="margin:28px 0"><a href="${escapeHtml(loginUrl)}" style="background:#4f46e5;color:#fff;text-decoration:none;border-radius:8px;padding:12px 18px;display:inline-block">Acessar a Three Devs</a></p>
+      <p>Revise o documento e responda este e-mail caso tenha alguma dúvida.</p>
+      <p><strong>Para assinar:</strong> entre no portal, abra o contrato e siga as instruções de <strong>Assinar com gov.br</strong>. Você vai precisar de uma conta gov.br nível prata ou ouro. Assine o PDF baixado do portal (não imprima nem escaneie) e envie o arquivo assinado pelo próprio portal. O projeto é liberado depois que a equipe conferir a assinatura.</p>
+      <p style="margin:28px 0"><a href="${escapeHtml(loginUrl)}" style="background:#4f46e5;color:#fff;text-decoration:none;border-radius:8px;padding:12px 18px;display:inline-block">Acessar o portal</a></p>
       <p style="color:#64748b;font-size:13px">Atenciosamente,<br>Equipe Three Devs</p>
     </div>
   `;

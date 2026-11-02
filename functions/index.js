@@ -2,8 +2,16 @@ const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { defineSecret, defineString } = require("firebase-functions/params");
 const { initializeApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
-const { getFirestore, Timestamp } = require("firebase-admin/firestore");
+const { FieldValue, getFirestore, Timestamp } = require("firebase-admin/firestore");
+const { getStorage } = require("firebase-admin/storage");
 const { buildContractPdf, safeFilename } = require("./contract-pdf");
+const {
+  decodeSignedPdf,
+  getClientSubmitProblem,
+  getDownloadProblem,
+  getFinalUploadProblem,
+  signatureFilePath,
+} = require("./contract-signature");
 const {
   buildContractEmailHtml,
   buildReplyToField,
@@ -50,9 +58,7 @@ function validateContract(contract) {
   if (problem) throw new HttpsError(problem.code, problem.message);
 }
 
-async function loadContractForDeveloper(request) {
-  await assertDeveloper(request.auth?.uid);
-
+async function readContract(request) {
   const contractId = String(request.data?.contractId ?? "").trim();
   if (!contractId) {
     throw new HttpsError("invalid-argument", "Contrato não informado.");
@@ -64,15 +70,48 @@ async function loadContractForDeveloper(request) {
     throw new HttpsError("not-found", "Contrato não encontrado.");
   }
 
-  const contract = { id: snapshot.id, ...snapshot.data() };
+  return { contract: { id: snapshot.id, ...snapshot.data() }, reference };
+}
+
+async function loadContractForDeveloper(request) {
+  await assertDeveloper(request.auth?.uid);
+  const { contract, reference } = await readContract(request);
   validateContract(contract);
   return { contract, reference };
+}
+
+// Desenvolvedor ou o cliente dono do contrato (mesmo e-mail do login no
+// cadastro em clients/{clientId}, como nas regras do Firestore).
+async function loadContractForParticipant(request) {
+  const uid = request.auth?.uid;
+  if (!uid) {
+    throw new HttpsError("unauthenticated", "Faça login para continuar.");
+  }
+
+  const { contract, reference } = await readContract(request);
+  const isDeveloper = (await getFirestore().doc(`developers/${uid}`).get()).exists;
+  if (isDeveloper) return { contract, reference, isDeveloper };
+
+  const email = String(request.auth.token?.email ?? "").toLowerCase();
+  const client = contract.clientId
+    ? await getFirestore().doc(`clients/${contract.clientId}`).get()
+    : null;
+  if (!email || !client?.exists || client.get("email") !== email) {
+    // Mesma resposta de contrato inexistente: não revela contratos de outros.
+    throw new HttpsError("not-found", "Contrato não encontrado.");
+  }
+  return { contract, reference, isDeveloper };
 }
 
 exports.generateContractPdf = onCall(
   { region: "us-central1", memory: "512MiB" },
   async (request) => {
-    const { contract } = await loadContractForDeveloper(request);
+    const { contract, isDeveloper } = await loadContractForParticipant(request);
+    // O cliente baixa o PDF para assinar (Enviado) ou já assinado.
+    if (!isDeveloper && !["sent", "signed"].includes(contract.status)) {
+      throw new HttpsError("not-found", "Contrato não encontrado.");
+    }
+    validateContract(contract);
 
     try {
       const pdf = await buildContractPdf(contract);
@@ -83,6 +122,116 @@ exports.generateContractPdf = onCall(
     } catch (error) {
       console.error("generateContractPdf error:", error);
       throw new HttpsError("internal", "Não foi possível gerar o PDF.");
+    }
+  },
+);
+
+// Assinatura gov.br assistida (docs/ASSINATURA-GOVBR.md). Os arquivos ficam
+// no Storage, acessado só por estas functions; storage.rules nega tudo ao
+// navegador.
+async function saveSignedPdf(contractId, kind, pdf) {
+  const path = signatureFilePath(contractId, kind);
+  await getStorage()
+    .bucket()
+    .file(path)
+    .save(pdf, {
+      resumable: false,
+      contentType: "application/pdf",
+      metadata: { cacheControl: "private, max-age=0" },
+    });
+  return { path, uploadedAt: new Date().toISOString(), size: pdf.length };
+}
+
+function decodeOrThrow(base64) {
+  const { pdf, problem } = decodeSignedPdf(base64);
+  if (problem) throw new HttpsError("invalid-argument", problem);
+  return pdf;
+}
+
+// O cliente envia (ou reenvia, depois de uma recusa) o PDF assinado no gov.br.
+exports.submitClientSignature = onCall(
+  { region: "us-central1", memory: "512MiB" },
+  async (request) => {
+    const { contract, reference, isDeveloper } =
+      await loadContractForParticipant(request);
+    if (isDeveloper) {
+      throw new HttpsError(
+        "permission-denied",
+        "O envio da assinatura é feito pelo cliente no portal.",
+      );
+    }
+
+    const problem = getClientSubmitProblem(contract);
+    if (problem) throw new HttpsError("failed-precondition", problem);
+
+    const pdf = decodeOrThrow(request.data?.pdfBase64);
+    try {
+      const clientFile = await saveSignedPdf(contract.id, "client", pdf);
+      await reference.update({
+        "signature.status": "received",
+        "signature.clientFile": clientFile,
+        "signature.rejection": FieldValue.delete(),
+        "signature.history": FieldValue.arrayUnion({
+          event: "received",
+          at: clientFile.uploadedAt,
+        }),
+        updatedAt: clientFile.uploadedAt,
+      });
+      return { ok: true, uploadedAt: clientFile.uploadedAt };
+    } catch (error) {
+      console.error("submitClientSignature error:", error);
+      throw new HttpsError("internal", "Não foi possível enviar o arquivo.");
+    }
+  },
+);
+
+// A equipe anexa o PDF final, já contra-assinado pela Serifa Labs.
+exports.uploadFinalSignedContract = onCall(
+  { region: "us-central1", memory: "512MiB" },
+  async (request) => {
+    await assertDeveloper(request.auth?.uid);
+    const { contract, reference } = await readContract(request);
+
+    const problem = getFinalUploadProblem(contract);
+    if (problem) throw new HttpsError("failed-precondition", problem);
+
+    const pdf = decodeOrThrow(request.data?.pdfBase64);
+    try {
+      const finalFile = await saveSignedPdf(contract.id, "final", pdf);
+      await reference.update({
+        "signature.finalFile": finalFile,
+        updatedAt: finalFile.uploadedAt,
+      });
+      return { ok: true, uploadedAt: finalFile.uploadedAt };
+    } catch (error) {
+      console.error("uploadFinalSignedContract error:", error);
+      throw new HttpsError("internal", "Não foi possível enviar o arquivo final.");
+    }
+  },
+);
+
+exports.downloadSignedContract = onCall(
+  { region: "us-central1", memory: "512MiB" },
+  async (request) => {
+    const kind = request.data?.kind === "final" ? "final" : "client";
+    const { contract, isDeveloper } = await loadContractForParticipant(request);
+
+    const problem = getDownloadProblem(contract, kind, isDeveloper);
+    if (problem) throw new HttpsError("not-found", problem);
+
+    try {
+      const [pdf] = await getStorage()
+        .bucket()
+        .file(signatureFilePath(contract.id, kind))
+        .download();
+      const base = safeFilename(contract.title).replace(/\.pdf$/i, "");
+      return {
+        filename: `${base}-${kind === "final" ? "assinado" : "assinatura-cliente"}.pdf`,
+        pdfBase64: pdf.toString("base64"),
+      };
+    } catch (error) {
+      console.error("downloadSignedContract error:", error);
+      throw new HttpsError("internal", "Não foi possível baixar o arquivo.");
     }
   },
 );

@@ -211,7 +211,8 @@ publica de novo a partir do repositório.
 - [x] Geração de contrato (PDF + e-mail)
 - [ ] Assinatura de contratos pelo gov.br (fluxo assistido): o cliente assina o
   PDF no gov.br e envia pelo portal; a equipe confere no validador do ITI e
-  contra-assina. Planejado: veja [ASSINATURA-GOVBR.md](docs/ASSINATURA-GOVBR.md)
+  contra-assina. Implementado, aguardando o teste de ponta a ponta: veja
+  [ASSINATURA-GOVBR.md](docs/ASSINATURA-GOVBR.md)
 - [x] Notificações ao cliente
 - [x] Domínio customizado (serifalabs.com)
 - [ ] Remetente de e-mail com domínio verificado: hoje é o de teste da Resend e

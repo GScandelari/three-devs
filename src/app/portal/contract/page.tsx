@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { getContractById } from "@/lib/firebase/firestore";
 import { EMPTY_CONTRACT_TEMPLATE } from "@/lib/contracts/template";
 import { ContractDocument } from "@/components/contracts/ContractDocument";
+import { ClientSignaturePanel } from "@/components/contracts/ClientSignaturePanel";
 import {
   contractStatusColors,
   contractStatusLabels,
@@ -100,6 +101,14 @@ function PortalContractContent() {
           {contractStatusLabels[contract.status]}
         </span>
       </div>
+
+      <ClientSignaturePanel
+        contract={contract}
+        onChanged={async () => {
+          const refreshed = await getContractById(contract.id);
+          if (refreshed) setContract(refreshed);
+        }}
+      />
 
       {contract.template ? (
         <ContractDocument data={template} />

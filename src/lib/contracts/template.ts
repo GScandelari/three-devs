@@ -73,6 +73,19 @@ export function applySystemFields(
   };
 }
 
+// Compara o conteúdo de dois templates (campos ausentes valem "").
+export function isSameTemplate(
+  a: ContractTemplateData | undefined,
+  b: ContractTemplateData,
+): boolean {
+  const keys = new Set([...Object.keys(a ?? {}), ...Object.keys(b)]);
+  return [...keys].every(
+    (key) =>
+      String(a?.[key as keyof ContractTemplateData] ?? "") ===
+      String(b[key as keyof ContractTemplateData] ?? ""),
+  );
+}
+
 export function buildContractTitle(data: ContractTemplateData): string {
   const project = data.projectName || "projeto";
   return `Contrato de Prestação de Serviços — ${project}`;

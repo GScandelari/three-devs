@@ -87,7 +87,8 @@ service cloud.firestore {
           ["clientId", "type", "title", "createdAt", "expiresAt"])
         && request.resource.data.clientId is string
         && request.resource.data.type in
-          ["project_status", "project_note", "project_link", "contract_signed"]
+          ["project_status", "project_note", "project_link", "contract_signed",
+           "contract_signature_rejected"]
         && request.resource.data.title is string
         && request.resource.data.title.size() > 0
         && request.resource.data.title.size() <= 300

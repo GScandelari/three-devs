@@ -1,7 +1,7 @@
 name: Deploy to Firebase
 
 # Todo o deploy passa por aqui: ninguém precisa publicar nada à mão.
-# - PR: valida regras, índices e functions sem publicar (--dry-run) e publica
+# - PR: valida regras (Firestore e Storage), índices e functions sem publicar (--dry-run) e publica
 #   o site num canal de preview. Erros de build, configuração ou permissão
 #   aparecem na PR, antes do merge.
 # - Push na main: publica, nesta ordem, regras/índices do Firestore, Cloud
@@ -87,15 +87,15 @@ jobs:
           printf '%s' "$SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/service-account.json"
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/service-account.json" >> "$GITHUB_ENV"
 
-      - name: Validar regras, índices e functions (PR, sem publicar)
+      - name: Validar regras (Firestore e Storage), índices e functions (PR, sem publicar)
         if: github.event_name == 'pull_request'
-        run: npm run firebase -- deploy --only firestore,functions --project "$FIREBASE_PROJECT" --non-interactive --dry-run
+        run: npm run firebase -- deploy --only firestore,storage,functions --project "$FIREBASE_PROJECT" --non-interactive --dry-run
 
       # --force: o repositório é a fonte da verdade. Functions removidas do
       # código e índices fora do firestore.indexes.json são apagados.
-      - name: Publicar regras, índices e functions
+      - name: Publicar regras (Firestore e Storage), índices e functions
         if: github.event_name != 'pull_request'
-        run: npm run firebase -- deploy --only firestore,functions --project "$FIREBASE_PROJECT" --non-interactive --force
+        run: npm run firebase -- deploy --only firestore,storage,functions --project "$FIREBASE_PROJECT" --non-interactive --force
 
       # Sem isto a action roda firebase-tools@latest, e uma versão nova da CLI
       # pode quebrar o deploy sem nenhuma mudança no repositório. A versão vem

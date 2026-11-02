@@ -13,6 +13,12 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
+  "storage": [
+    {
+      "bucket": "three-devs.firebasestorage.app",
+      "rules": "storage.rules"
+    }
+  ],
   "emulators": {
     "firestore": {
       "port": 8080

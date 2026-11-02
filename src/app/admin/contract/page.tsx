@@ -17,10 +17,14 @@ import {
 import {
   EMPTY_CONTRACT_TEMPLATE,
   applySystemFields,
+  isSameTemplate,
 } from "@/lib/contracts/template";
+import { canMarkSigned } from "@/lib/contracts/signature";
+import { downloadBase64Pdf, getErrorMessage } from "@/lib/files";
 import { useAuth } from "@/contexts/AuthContext";
 import { ContractTemplateForm } from "@/components/contracts/ContractTemplateForm";
 import { ContractDocument } from "@/components/contracts/ContractDocument";
+import { AdminSignaturePanel } from "@/components/contracts/AdminSignaturePanel";
 import { Button } from "@/components/ui/Button";
 import {
   contractStatusColors,
@@ -123,6 +127,30 @@ function ContractEditorContent() {
     );
   }
 
+  // Mudar o conteúdo depois de o cliente enviar a assinatura descarta o PDF
+  // assinado (ele deixa de corresponder ao contrato): pede confirmação antes.
+  function confirmDiscardSignature(): boolean {
+    const signature = contract?.signature;
+    if (!signature || signature.status === "awaiting") return true;
+    if (isSameTemplate(contract?.template, template)) return true;
+    return window.confirm(
+      "O cliente já enviou o PDF assinado. Alterar o contrato descarta essa assinatura, e ele precisará assinar o PDF novo. Continuar?",
+    );
+  }
+
+  // Grava o template; retorna false se o usuário desistiu de descartar a
+  // assinatura recebida.
+  async function saveCurrentTemplate(): Promise<boolean> {
+    if (!confirmDiscardSignature()) return false;
+    const { signatureReset } = await updateContractTemplate(contractId!, template);
+    if (signatureReset) {
+      setStatusError(
+        "A assinatura recebida foi descartada porque o contrato mudou. Avise o cliente para assinar o PDF novo.",
+      );
+    }
+    return true;
+  }
+
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -130,7 +158,7 @@ function ContractEditorContent() {
     setSaving(true);
 
     try {
-      await updateContractTemplate(contractId!, template);
+      if (!(await saveCurrentTemplate())) return;
       setSuccess("Template do contrato salvo.");
       const refreshed = await getContractById(contractId!);
       setContract(refreshed);
@@ -166,10 +194,6 @@ function ContractEditorContent() {
     }
   }
 
-  async function saveCurrentTemplate() {
-    await updateContractTemplate(contractId!, template);
-  }
-
   async function refreshContract() {
     const refreshed = await getContractById(contractId!);
     setContract(refreshed);
@@ -181,7 +205,7 @@ function ContractEditorContent() {
     setGenerating(true);
 
     try {
-      await saveCurrentTemplate();
+      if (!(await saveCurrentTemplate())) return;
       const { filename, pdfBase64 } = await generateContractPdf(contractId!);
       downloadBase64Pdf(pdfBase64, filename);
       await refreshContract();
@@ -199,7 +223,7 @@ function ContractEditorContent() {
     setSending(true);
 
     try {
-      await saveCurrentTemplate();
+      if (!(await saveCurrentTemplate())) return;
       const result = await sendContractEmail(contractId!);
       if (result.trackingUpdated) {
         await refreshContract();
@@ -263,6 +287,12 @@ function ContractEditorContent() {
           <Button
             type="button"
             variant="ghost"
+            disabled={!canMarkSigned(contract)}
+            title={
+              canMarkSigned(contract)
+                ? undefined
+                : "Disponível depois de anexar o PDF final na seção Assinatura."
+            }
             onClick={() => handleStatus("signed")}
           >
             Marcar assinado
@@ -307,6 +337,12 @@ function ContractEditorContent() {
         </p>
       )}
 
+      <AdminSignaturePanel
+        contract={contract}
+        developerName={developerName}
+        onChanged={refreshContract}
+      />
+
       <div className="mt-8 flex gap-2 border-b border-slate-200">
         <TabButton active={tab === "form"} onClick={() => setTab("form")}>
           Preencher template
@@ -342,28 +378,6 @@ function ContractEditorContent() {
       )}
     </div>
   );
-}
-
-function downloadBase64Pdf(pdfBase64: string, filename: string) {
-  const binary = window.atob(pdfBase64);
-  const bytes = new Uint8Array(binary.length);
-  for (let index = 0; index < binary.length; index += 1) {
-    bytes[index] = binary.charCodeAt(index);
-  }
-
-  const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
-}
-
-function getErrorMessage(caught: unknown, fallback: string) {
-  if (!(caught instanceof Error) || !caught.message) return fallback;
-  return caught.message.replace(/^Firebase:\s*/i, "").replace(/\s*\([^)]*\)\.?$/, "");
 }
 
 function TabButton({

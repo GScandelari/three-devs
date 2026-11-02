@@ -103,3 +103,52 @@ export async function sendContractEmail(
   const result = await callable({ contractId, requestId: crypto.randomUUID() });
   return result.data;
 }
+
+// Assinatura gov.br assistida (docs/ASSINATURA-GOVBR.md).
+export async function submitClientSignature(
+  contractId: string,
+  pdfBase64: string,
+): Promise<{ ok: boolean; uploadedAt: string }> {
+  const functions = getFirebaseFunctions();
+  if (!functions) throw new Error("Firebase não configurado");
+
+  const callable = httpsCallable<
+    { contractId: string; pdfBase64: string },
+    { ok: boolean; uploadedAt: string }
+  >(functions, "submitClientSignature");
+
+  const result = await callable({ contractId, pdfBase64 });
+  return result.data;
+}
+
+export async function uploadFinalSignedContract(
+  contractId: string,
+  pdfBase64: string,
+): Promise<{ ok: boolean; uploadedAt: string }> {
+  const functions = getFirebaseFunctions();
+  if (!functions) throw new Error("Firebase não configurado");
+
+  const callable = httpsCallable<
+    { contractId: string; pdfBase64: string },
+    { ok: boolean; uploadedAt: string }
+  >(functions, "uploadFinalSignedContract");
+
+  const result = await callable({ contractId, pdfBase64 });
+  return result.data;
+}
+
+export async function downloadSignedContract(
+  contractId: string,
+  kind: "client" | "final",
+): Promise<{ filename: string; pdfBase64: string }> {
+  const functions = getFirebaseFunctions();
+  if (!functions) throw new Error("Firebase não configurado");
+
+  const callable = httpsCallable<
+    { contractId: string; kind: "client" | "final" },
+    { filename: string; pdfBase64: string }
+  >(functions, "downloadSignedContract");
+
+  const result = await callable({ contractId, kind });
+  return result.data;
+}
