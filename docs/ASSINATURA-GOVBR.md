@@ -169,6 +169,11 @@ exigiria uma permissão a mais no projeto. Consequências:
   cada recusa.
 
 O `storage.rules` entra no deploy do CI (`--only firestore,storage,functions`).
+O bucket (`three-devs.firebasestorage.app`, região `us-central1`) está fixo no
+`firebase.json`: com ele explícito, a CLI não consulta o "bucket padrão" do
+projeto, consulta que devolve 404 para a conta de serviço do CI mesmo com o
+papel Cloud Storage for Firebase Admin. As functions usam o mesmo bucket (é o
+`storageBucket` da configuração do Admin SDK do projeto).
 
 ### Telas
 

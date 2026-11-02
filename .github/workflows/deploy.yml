@@ -89,7 +89,7 @@ jobs:
 
       - name: Validar regras (Firestore e Storage), índices e functions (PR, sem publicar)
         if: github.event_name == 'pull_request'
-        run: npm run firebase -- deploy --only firestore,storage,functions --project "$FIREBASE_PROJECT" --non-interactive --dry-run --debug
+        run: npm run firebase -- deploy --only firestore,storage,functions --project "$FIREBASE_PROJECT" --non-interactive --dry-run
 
       # --force: o repositório é a fonte da verdade. Functions removidas do
       # código e índices fora do firestore.indexes.json são apagados.
