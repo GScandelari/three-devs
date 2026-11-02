@@ -209,7 +209,9 @@ publica de novo a partir do repositório.
 - [x] Portal do cliente
 - [x] Painel admin
 - [x] Geração de contrato (PDF + e-mail)
-- [ ] Assinatura digital (DocuSign, Clicksign)
+- [ ] Assinatura de contratos pelo gov.br (fluxo assistido): o cliente assina o
+  PDF no gov.br e envia pelo portal; a equipe confere no validador do ITI e
+  contra-assina. Planejado: veja [ASSINATURA-GOVBR.md](docs/ASSINATURA-GOVBR.md)
 - [x] Notificações ao cliente
 - [x] Domínio customizado (serifalabs.com)
 - [ ] Remetente de e-mail com domínio verificado: hoje é o de teste da Resend e
