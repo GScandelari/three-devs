@@ -1,6 +1,6 @@
 # Assinatura de contratos pelo gov.br (fluxo assistido)
 
-**Status:** planejado (item do roadmap no `README.md`). **Decidido em:** 31/10/2026.
+**Status:** Fase 0 concluída (02/11/2026); Fase 1 implementada, aguardando teste de ponta a ponta. **Decidido em:** 31/10/2026.
 
 Este documento descreve como os contratos serão assinados pelo gov.br e o que
 precisa ser construído. Ele é a referência para implementar o item: siga as
@@ -141,31 +141,34 @@ signature?: {
 };
 ```
 
-- `signature.status` só existe enquanto o contrato está **Enviado**. **Marcar
-  assinado** grava o status `signed`, como hoje, e exige `finalFile`.
-- O cliente **não grava** em `contracts` diretamente (regra atual). O registro
-  do envio é feito por uma Cloud Function chamada depois do upload, que confere
-  se o arquivo existe no Storage e pertence ao contrato do cliente.
+- Sem `signature`, a assinatura está **aguardando**. **Marcar assinado** grava
+  o status `signed`, como antes, e exige `finalFile`.
+- O cliente **não grava** em `contracts` diretamente (regra do Firestore, com
+  teste). O envio e o registro acontecem juntos na function
+  `submitClientSignature`.
 
 ### Arquivos (Firebase Storage)
 
-O projeto ainda não usa o Storage. É preciso ativá-lo e criar o `storage.rules`.
-
-| Caminho | Quem grava | Quem lê |
+| Caminho | Gravado por | Baixado por |
 |---|---|---|
-| `contracts/{contractId}/cliente-assinado.pdf` | O cliente dono do contrato, só enquanto o status for **Enviado** | Equipe e o próprio cliente |
-| `contracts/{contractId}/final.pdf` | Só a equipe | Equipe e o cliente dono do contrato |
+| `contracts/{contractId}/cliente-assinado.pdf` | Cliente dono do contrato, via `submitClientSignature`, só com o status **Enviado** e sem arquivo final | Equipe e o próprio cliente |
+| `contracts/{contractId}/final.pdf` | Equipe, via `uploadFinalSignedContract`, depois de uma assinatura **Recebida** | Equipe sempre; o cliente, depois de **Assinado** |
 
-Regras obrigatórias para o upload do cliente:
+**Ajuste em relação ao planejamento:** os arquivos passam pelas **Cloud
+Functions** (`functions/contract-signature.js` e `functions/index.js`), não
+por upload direto do navegador. O Storage fica fechado ao navegador
+(`storage.rules` nega tudo), e a checagem de dono do contrato fica num lugar
+só, a mesma das regras do Firestore (e-mail do login igual ao do cadastro do
+cliente). Assim as regras do Storage não precisam consultar o Firestore, o que
+exigiria uma permissão a mais no projeto. Consequências:
 
-- só `application/pdf`;
-- tamanho máximo de **20 MB**;
-- só no contrato cujo `clientId` pertence ao cliente logado (mesma checagem de
-  `isOwnClientById` das regras do Firestore);
-- arquivos antigos: substituir ao reenviar e manter a data no `history`.
+- limite de **10 MB** por arquivo (corpo da requisição das functions), e não
+  20 MB; um PDF de contrato assinado tem poucos KB;
+- o servidor confere se o arquivo começa com `%PDF-`;
+- reenviar substitui o arquivo anterior, e o `history` registra cada envio e
+  cada recusa.
 
-O deploy das regras do Storage entra no workflow (`--only firestore,functions,storage`).
-A validação da PR mostra se faltar algum papel na conta de serviço.
+O `storage.rules` entra no deploy do CI (`--only firestore,storage,functions`).
 
 ### Telas
 
@@ -175,7 +178,7 @@ A validação da PR mostra se faltar algum papel na conta de serviço.
   prata ou ouro, assinar o PDF baixado daqui, não imprimir nem escanear, enviar
   o arquivo que o assinador devolve. Inclui link para o assinador gov.br.
 - **Baixar PDF para assinar**.
-- **Enviar PDF assinado**: aceita só PDF de até 20 MB e mostra o progresso.
+- **Enviar PDF assinado**: aceita só PDF de até 10 MB e mostra o progresso.
 - Situação da assinatura: *Aguardando seu envio*, *Recebida, em conferência*
   ou *Recusada*, com o motivo e a opção de reenviar.
 - Depois de **Assinado**: **Baixar contrato assinado** (arquivo final).
@@ -202,11 +205,19 @@ O tipo novo precisa entrar na lista permitida das regras de `notifications`.
 
 ### Cloud Functions
 
-- `registerClientSignature({ contractId })`: chamada pelo portal depois do
-  upload. Confere o dono, o status **Enviado** e se o arquivo existe; grava
-  `signature.status = "received"` e o `history`.
-- As ações da equipe (recusar e enviar arquivo final) podem ser feitas pelo
-  app, porque desenvolvedores já gravam em `contracts`.
+- `submitClientSignature({ contractId, pdfBase64 })`: o cliente envia o PDF
+  assinado. Confere o dono, o status **Enviado**, a ausência de arquivo final e
+  o PDF; grava o arquivo e `signature.status = "received"`.
+- `uploadFinalSignedContract({ contractId, pdfBase64 })`: só equipe; exige
+  assinatura **Recebida**; grava `final.pdf` e `signature.finalFile`.
+- `downloadSignedContract({ contractId, kind })`: devolve o PDF do cliente ou
+  o final, conforme as permissões da tabela acima.
+- `generateContractPdf` passou a atender também o cliente dono do contrato
+  (status Enviado ou Assinado), para o botão "Baixar PDF para assinar".
+- A **recusa** é feita pelo app (`rejectClientSignature` em
+  `src/lib/firebase/firestore.ts`), numa transação com o aviso ao cliente.
+- **"Marcar assinado"** (`updateContractStatus`) recusa a transição para
+  Assinado sem `signature.finalFile`.
 
 ## Fases
 
@@ -215,28 +226,35 @@ O tipo novo precisa entrar na lista permitida das regras de `notifications`.
 Responde à única dúvida técnica que pode mudar o desenho: o assinador gov.br
 aceita uma **segunda assinatura** num PDF já assinado?
 
-- [ ] Gerar o PDF de um contrato de teste (Admin → Contrato → Baixar PDF).
-- [ ] Pessoa A assina no gov.br e baixa o arquivo.
-- [ ] Pessoa B assina **o arquivo já assinado** por A.
-- [ ] Conferir no validador do ITI se as duas assinaturas aparecem válidas.
-- [ ] Registrar o resultado aqui.
+- [x] Gerar o PDF de um contrato de teste (Admin → Contrato → Baixar PDF).
+- [x] Pessoa A assina no gov.br e baixa o arquivo.
+- [x] Pessoa B assina **o arquivo já assinado** por A.
+- [x] Conferir no validador do ITI se as duas assinaturas aparecem válidas.
+- [x] Registrar o resultado aqui.
+
+**Resultado (02/11/2026):** o validador do ITI aceitou o PDF com as duas
+assinaturas. O fluxo segue como planejado: um único arquivo, assinado pelo
+cliente e contra-assinado pela Serifa Labs.
 
 Se a segunda assinatura **não** funcionar, os passos 6b a 8 mudam: cada parte
 assina a própria via, e o sistema guarda dois arquivos finais.
 
 ### Fase 1: fluxo principal
 
-- [ ] Ativar o Firebase Storage, criar o `storage.rules` e incluí-lo no deploy do CI.
-- [ ] Testes das regras do Storage: o cliente envia só no próprio contrato, só
-      PDF, até 20 MB, só com status Enviado; outro cliente e visitante sem login não.
-- [ ] Campos `signature` em `contracts` (tipos em `src/lib/types`).
-- [ ] Function `registerClientSignature`, com testes.
-- [ ] Portal: instruções, baixar PDF, enviar PDF assinado e situação da assinatura.
-- [ ] Admin: selo na lista, seção Assinatura, recusa com motivo, arquivo final e
-      "Marcar assinado" exigindo o arquivo final.
-- [ ] Aviso de recusa no sininho (tipo novo nas regras de `notifications`).
-- [ ] Edição do contrato depois do envio descarta a assinatura, com aviso.
-- [ ] Atualizar `docs/FLUXO.md` (estados do contrato e avisos).
+- [x] `storage.rules` (nega tudo ao navegador) no `firebase.json` e no deploy do CI.
+- [ ] Firebase Storage ativo no projeto (confirmado pela validação do CI).
+- [x] Campos `signature` em `contracts` (tipos em `src/lib/types`).
+- [x] Functions `submitClientSignature`, `uploadFinalSignedContract` e
+      `downloadSignedContract`, com testes das regras em `contract-signature.test.js`.
+- [x] Portal: instruções, baixar PDF, enviar PDF assinado e situação da assinatura.
+- [x] Admin: selo na lista, seção Assinatura com checklist de conferência, recusa
+      com motivo, arquivo final e "Marcar assinado" exigindo o arquivo final.
+- [x] Aviso de recusa no sininho (tipo novo nas regras de `notifications`, com teste).
+- [x] Edição do contrato depois do envio descarta a assinatura, com confirmação
+      antes; "Baixar PDF" e "Enviar por e-mail" sem mudança de conteúdo não descartam.
+- [x] E-mail do contrato explica como assinar pelo portal.
+- [x] Atualizar `docs/FLUXO.md` (estados do contrato e avisos).
+- [ ] Teste de ponta a ponta em produção (critério abaixo).
 
 **Pronto quando:** um contrato de teste percorre os passos 1 a 8, inclusive uma
 recusa e um reenvio, e termina com o projeto liberado e o PDF final baixável no

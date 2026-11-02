@@ -9,6 +9,7 @@ import {
   query,
   where,
   runTransaction,
+  arrayUnion,
   Timestamp,
   type Firestore,
   type Transaction,
@@ -28,6 +29,7 @@ import type {
 import {
   EMPTY_CONTRACT_TEMPLATE,
   buildContractTitle,
+  isSameTemplate,
 } from "@/lib/contracts/template";
 import { projectStatusLabels } from "@/lib/labels";
 import { getFirebaseDb } from "./config";
@@ -284,17 +286,87 @@ export async function createContract(data: {
   return id;
 }
 
+// "Baixar PDF" e "Enviar por e-mail" gravam o template antes; só uma mudança
+// real de conteúdo descarta a assinatura já recebida (o PDF assinado deixa de
+// corresponder ao contrato). Retorna se a assinatura foi descartada.
 export async function updateContractTemplate(
   contractId: string,
   template: ContractTemplateData,
+): Promise<{ signatureReset: boolean }> {
+  const db = dbOrThrow();
+  const now = new Date().toISOString();
+  const contractRef = doc(db, "contracts", contractId);
+
+  return runTransaction(db, async (tx) => {
+    const snap = await tx.get(contractRef);
+    if (!snap.exists()) throw new Error("Contrato não encontrado");
+    const contract = mapDoc<Contract>(snap);
+
+    const updates: Record<string, unknown> = {
+      template,
+      title: buildContractTitle(template),
+      updatedAt: now,
+    };
+
+    const signature = contract.signature;
+    const signatureReset =
+      Boolean(signature && signature.status !== "awaiting") &&
+      contract.status !== "signed" &&
+      !isSameTemplate(contract.template, template);
+    if (signatureReset) {
+      updates.signature = {
+        status: "awaiting",
+        history: [
+          ...(signature?.history ?? []),
+          { event: "reset", at: now, detail: "Contrato alterado depois do envio." },
+        ],
+      };
+    }
+
+    tx.update(contractRef, updates);
+    return { signatureReset };
+  });
+}
+
+// A equipe recusa o PDF enviado pelo cliente; ele vê o motivo no portal e no
+// sininho e pode enviar de novo.
+export async function rejectClientSignature(
+  contractId: string,
+  reason: string,
+  rejectedBy: string,
 ) {
   const db = dbOrThrow();
   const now = new Date().toISOString();
+  const contractRef = doc(db, "contracts", contractId);
 
-  await updateDoc(doc(db, "contracts", contractId), {
-    template,
-    title: buildContractTitle(template),
-    updatedAt: now,
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(contractRef);
+    if (!snap.exists()) throw new Error("Contrato não encontrado");
+    const contract = mapDoc<Contract>(snap);
+    if (contract.status !== "sent" || contract.signature?.status !== "received") {
+      throw new Error("Não há assinatura recebida para recusar.");
+    }
+    if (contract.signature.finalFile) {
+      throw new Error("O arquivo final já foi anexado; a assinatura não pode mais ser recusada.");
+    }
+
+    tx.update(contractRef, {
+      "signature.status": "rejected",
+      "signature.rejection": { reason, rejectedAt: now, rejectedBy },
+      "signature.history": arrayUnion({ event: "rejected", at: now, detail: reason }),
+      updatedAt: now,
+    });
+    queueNotification(
+      tx,
+      db,
+      {
+        clientId: contract.clientId,
+        type: "contract_signature_rejected",
+        title: `Assinatura recusada: ${contract.title}`,
+        contractId,
+      },
+      now,
+    );
   });
 }
 
@@ -310,6 +382,18 @@ export async function updateContractStatus(
     const snap = await tx.get(contractRef);
     if (!snap.exists()) throw new Error("Contrato não encontrado");
     const contract = mapDoc<Contract>(snap);
+
+    // Assinatura gov.br assistida: só se marca assinado com o PDF final
+    // (assinado pelo cliente e contra-assinado pela Serifa Labs) anexado.
+    if (
+      status === "signed" &&
+      contract.status !== "signed" &&
+      !contract.signature?.finalFile
+    ) {
+      throw new Error(
+        "Anexe o PDF final assinado (seção Assinatura do contrato) antes de marcar como assinado.",
+      );
+    }
 
     // Numa transação, todas as leituras vêm antes das escritas. Contrato sem
     // cliente válido (criado à mão, cliente removido) continua podendo ser

@@ -14,6 +14,7 @@ import {
   EMPTY_CONTRACT_TEMPLATE,
   applySystemFields,
 } from "@/lib/contracts/template";
+import { canMarkSigned, hasSignatureToReview } from "@/lib/contracts/signature";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/Button";
 import {
@@ -142,9 +143,9 @@ export default function AdminContractsPage() {
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Contratos</h1>
           <p className="mt-1 text-slate-600">
-            Preencha o template, envie ao cliente e controle a assinatura. O
-            cliente acessa o portal, mas o projeto só é liberado para ele depois
-            que o contrato vinculado for marcado como assinado.
+            Preencha o template e envie ao cliente. Ele assina pelo gov.br e
+            envia o PDF pelo portal; a equipe confere, contra-assina e marca o
+            contrato como assinado, o que libera o projeto no portal.
           </p>
         </div>
         <Button onClick={() => setShowForm(!showForm)}>
@@ -253,6 +254,11 @@ export default function AdminContractsPage() {
                     >
                       {contractStatusLabels[contract.status]}
                     </span>
+                    {hasSignatureToReview(contract) && (
+                      <span className="ml-2 rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-800">
+                        Assinatura recebida
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-2">
@@ -262,8 +268,8 @@ export default function AdminContractsPage() {
                       >
                         {contract.status === "draft" ? "Preencher / enviar" : "Ver contrato"}
                       </Link>
-                      {(contract.status === "draft" ||
-                        contract.status === "sent") && (
+                      {/* Só com o PDF final anexado (seção Assinatura do contrato). */}
+                      {canMarkSigned(contract) && (
                         <ActionBtn
                           onClick={() =>
                             handleStatusChange(contract.id, "signed")

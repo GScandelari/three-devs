@@ -70,6 +70,29 @@ export interface Contract {
   signedAt?: string;
   createdAt: string;
   updatedAt?: string;
+  // Assinatura gov.br assistida (docs/ASSINATURA-GOVBR.md). Ausente enquanto o
+  // cliente não envia nada: equivale a "aguardando".
+  signature?: ContractSignature;
+}
+
+export type ContractSignatureStatus = "awaiting" | "received" | "rejected";
+
+export interface SignatureFile {
+  path: string;
+  uploadedAt: string;
+  size: number;
+}
+
+export interface ContractSignature {
+  status: ContractSignatureStatus;
+  clientFile?: SignatureFile;
+  finalFile?: SignatureFile;
+  rejection?: { reason: string; rejectedAt: string; rejectedBy: string };
+  history?: Array<{
+    event: "received" | "rejected" | "reset";
+    at: string;
+    detail?: string;
+  }>;
 }
 
 export interface ProjectLink {
@@ -109,7 +132,8 @@ export type ClientNotificationType =
   | "project_status"
   | "project_note"
   | "project_link"
-  | "contract_signed";
+  | "contract_signed"
+  | "contract_signature_rejected";
 
 export interface ClientNotification {
   id: string;

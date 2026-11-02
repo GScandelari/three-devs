@@ -31,6 +31,21 @@ projeto sem contrato também fica bloqueado. Esse controle é feito na interface
 as regras do Firestore continuam permitindo que o cliente leia os próprios
 projetos.
 
+### Assinatura (status `sent`)
+
+Enquanto o contrato está **Enviado**, a assinatura segue o fluxo gov.br
+assistido (detalhes em [ASSINATURA-GOVBR.md](ASSINATURA-GOVBR.md)):
+
+| Assinatura | O que significa | Próximo passo |
+|---|---|---|
+| Aguardando | O cliente ainda não enviou o PDF assinado | Cliente assina no gov.br e envia pelo portal |
+| Recebida | O PDF do cliente chegou; selo "Assinatura recebida" na lista | Equipe confere no validador do ITI |
+| Recusada | A equipe recusou o arquivo, com motivo | Cliente assina de novo e reenvia |
+| Recebida + arquivo final | A Serifa Labs contra-assinou e anexou o PDF final | Equipe clica em "Marcar assinado" |
+
+"Marcar assinado" só é aceito com o PDF final anexado. Alterar o conteúdo do
+contrato depois de uma assinatura recebida a descarta (com confirmação antes).
+
 ## Estados do projeto
 
 | Status | Descrição |
@@ -77,6 +92,7 @@ visualizados ou, se não forem, 3 dias após a criação.
 | Nova nota | Admin → Projeto | Se "Avisar o cliente" estiver marcado (padrão: marcado) |
 | Novo link | Admin → Projeto | Se "Avisar o cliente" estiver marcado (padrão: marcado) |
 | Contrato assinado | Admin → Contratos | Sempre |
+| Assinatura recusada | Admin → Contrato → Assinatura | Sempre, com o motivo |
 | Dados do cliente incompletos | Calculado no portal | Enquanto faltar nome ou CPF/CNPJ no cadastro |
 
 **Lembrete de dados incompletos.** Diferente dos outros, ele não é gravado no

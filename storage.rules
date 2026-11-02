@@ -1,0 +1,13 @@
+rules_version = '2';
+
+// Os PDFs de assinatura de contratos (contracts/{contractId}/...) são lidos e
+// gravados só pelas Cloud Functions (Admin SDK, que ignora estas regras). Elas
+// conferem quem é o dono do contrato antes de cada envio ou download; veja
+// docs/ASSINATURA-GOVBR.md. O navegador não acessa o Storage diretamente.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

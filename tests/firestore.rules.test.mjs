@@ -133,6 +133,26 @@ describe("criação de avisos", () => {
     );
   });
 
+  test("desenvolvedor cria aviso de assinatura recusada", async () => {
+    await assertSucceeds(
+      setDoc(
+        doc(dev, "notifications/new3"),
+        contractNotification({
+          type: "contract_signature_rejected",
+          title: "Assinatura recusada: Contrato App XYZ",
+        }),
+      ),
+    );
+  });
+
+  test("cliente não altera o próprio contrato (assinatura passa pela function)", async () => {
+    await assertFails(
+      updateDoc(doc(clientA, "contracts/k1"), {
+        "signature.status": "received",
+      }),
+    );
+  });
+
   test("rejeita o formato antigo com readAt", async () => {
     await assertFails(
       setDoc(doc(dev, "notifications/x"), validNotification({ readAt: null })),

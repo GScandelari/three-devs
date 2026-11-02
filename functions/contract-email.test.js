@@ -38,6 +38,17 @@ test("escapa dados do contrato no HTML do e-mail", () => {
   assert.match(html, /https:\/\/serifalabs\.com\/login\//);
 });
 
+test("e-mail do contrato explica a assinatura pelo gov.br no portal", () => {
+  const html = buildContractEmailHtml(
+    { template: { clientName: "Ana", projectName: "App" } },
+    "https://serifalabs.com",
+  );
+
+  assert.match(html, /Assinar com gov\.br/);
+  assert.match(html, /prata ou ouro/);
+  assert.match(html, /não imprima nem escaneie/);
+});
+
 test("gera chave de idempotência por tentativa de envio", () => {
   assert.equal(
     makeIdempotencyKey("contract-1", "request_12345678"),
