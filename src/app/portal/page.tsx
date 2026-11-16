@@ -8,6 +8,8 @@ import {
   getContractsByClientId,
   getSignedProjectIds,
 } from "@/lib/firebase/firestore";
+import { needsClientSignature } from "@/lib/contracts/signature";
+import { contractStatusColors, contractStatusLabels } from "@/lib/labels";
 import { ProjectCard } from "@/components/portal/ProjectCard";
 import type { Contract, Project } from "@/lib/types";
 
@@ -38,6 +40,13 @@ export default function PortalPage() {
   }
 
   const signedProjectIds = getSignedProjectIds(contracts);
+  const contractHrefFor = (projectId: string) => {
+    const linked = contracts.find(
+      (c) => c.projectId === projectId && c.status !== "cancelled",
+    );
+    return linked ? `/portal/contract?id=${linked.id}` : undefined;
+  };
+  const pendingContract = contracts.find(needsClientSignature);
 
   return (
     <div>
@@ -49,6 +58,26 @@ export default function PortalPage() {
           Acompanhe seus projetos, contratos e atualizações.
         </p>
       </div>
+
+      {pendingContract && (
+        <section className="mb-10 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-indigo-200 bg-indigo-50 p-5">
+          <div>
+            <h2 className="font-medium text-slate-900">
+              Você tem um contrato para assinar
+            </h2>
+            <p className="mt-1 text-sm text-slate-600">
+              {pendingContract.title}. Seus projetos são liberados assim que o
+              contrato for assinado.
+            </p>
+          </div>
+          <Link
+            href={`/portal/contract?id=${pendingContract.id}`}
+            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+          >
+            Assinar agora
+          </Link>
+        </section>
+      )}
 
       {contracts.length > 0 && (
         <section className="mb-10">
@@ -75,19 +104,11 @@ export default function PortalPage() {
                   </p>
                 </div>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                    contract.status === "signed"
-                      ? "bg-emerald-100 text-emerald-800"
-                      : contract.status === "sent"
-                        ? "bg-amber-100 text-amber-800"
-                        : "bg-slate-100 text-slate-600"
-                  }`}
+                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${contractStatusColors[contract.status]}`}
                 >
-                  {contract.status === "signed"
-                    ? "Assinado"
-                    : contract.status === "sent"
-                      ? "Aguardando assinatura"
-                      : contract.status}
+                  {needsClientSignature(contract)
+                    ? "Aguardando sua assinatura"
+                    : contractStatusLabels[contract.status]}
                 </span>
               </Link>
             ))}
@@ -113,6 +134,7 @@ export default function PortalPage() {
                 key={project.id}
                 project={project}
                 locked={!signedProjectIds.has(project.id)}
+                contractHref={contractHrefFor(project.id)}
               />
             ))}
           </div>

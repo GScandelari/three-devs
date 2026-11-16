@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { getContractById } from "@/lib/firebase/firestore";
 import { EMPTY_CONTRACT_TEMPLATE } from "@/lib/contracts/template";
 import { ContractDocument } from "@/components/contracts/ContractDocument";
+import { ContractStepper } from "@/components/contracts/ContractStepper";
 import { ClientSignaturePanel } from "@/components/contracts/ClientSignaturePanel";
 import {
   contractStatusColors,
@@ -101,6 +102,8 @@ function PortalContractContent() {
           {contractStatusLabels[contract.status]}
         </span>
       </div>
+
+      <ContractStepper contract={contract} />
 
       <ClientSignaturePanel
         contract={contract}

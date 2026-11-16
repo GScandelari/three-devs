@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   createContract,
   getAllClients,
@@ -14,7 +14,11 @@ import {
   EMPTY_CONTRACT_TEMPLATE,
   applySystemFields,
 } from "@/lib/contracts/template";
-import { canMarkSigned, hasSignatureToReview } from "@/lib/contracts/signature";
+import {
+  canMarkSigned,
+  getAdminNextStep,
+  hasSignatureToReview,
+} from "@/lib/contracts/signature";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/Button";
 import {
@@ -23,8 +27,32 @@ import {
 } from "@/lib/labels";
 import type { Client, Contract, ContractStatus, Project } from "@/lib/types";
 
-export default function AdminContractsPage() {
+type ContractFilter = "all" | "pending" | ContractStatus;
+
+const FILTERS: { value: ContractFilter; label: string }[] = [
+  { value: "all", label: "Todos" },
+  { value: "pending", label: "Pendentes" },
+  { value: "draft", label: "Rascunho" },
+  { value: "sent", label: "Enviados" },
+  { value: "signed", label: "Assinados" },
+  { value: "cancelled", label: "Cancelados" },
+];
+
+const nextStepColors = {
+  action: "text-indigo-700 font-medium",
+  waiting: "text-slate-600",
+  done: "text-slate-400",
+};
+
+function AdminContractsContent() {
   const router = useRouter();
+  const initialFilter = useSearchParams().get("status");
+  const [filter, setFilter] = useState<ContractFilter>(
+    FILTERS.some((f) => f.value === initialFilter)
+      ? (initialFilter as ContractFilter)
+      : "all",
+  );
+  const [query, setQuery] = useState("");
   const { developer } = useAuth();
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
@@ -75,6 +103,16 @@ export default function AdminContractsPage() {
 
   const clientMap = Object.fromEntries(clients.map((c) => [c.id, c.name]));
   const projectMap = Object.fromEntries(projects.map((p) => [p.id, p.name]));
+  const visibleContracts = contracts.filter((c) => {
+    if (filter === "pending") {
+      if (c.status !== "draft" && c.status !== "sent") return false;
+    } else if (filter !== "all" && c.status !== filter) return false;
+    const term = query.trim().toLowerCase();
+    if (!term) return true;
+    return [c.title, clientMap[c.clientId], projectMap[c.projectId]]
+      .filter(Boolean)
+      .some((text) => text.toLowerCase().includes(term));
+  });
   const clientProjects = projects.filter((p) => p.clientId === form.clientId);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -215,14 +253,48 @@ export default function AdminContractsPage() {
         </p>
       )}
 
+      {!loading && contracts.length > 0 && (
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <div role="group" aria-label="Filtrar por status" className="flex flex-wrap gap-2">
+            {FILTERS.map((f) => (
+              <button
+                key={f.value}
+                type="button"
+                aria-pressed={filter === f.value}
+                onClick={() => setFilter(f.value)}
+                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                  filter === f.value
+                    ? "bg-indigo-600 text-white"
+                    : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Buscar contrato, cliente ou projeto"
+            aria-label="Buscar contratos"
+            className="w-full max-w-xs rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-indigo-500"
+          />
+        </div>
+      )}
+
       {loading ? (
         <p className="mt-8 text-sm text-slate-500">Carregando...</p>
       ) : contracts.length === 0 ? (
         <div className="mt-8 rounded-xl border border-dashed border-slate-200 bg-white p-12 text-center text-sm text-slate-500">
           Nenhum contrato cadastrado.
         </div>
+      ) : visibleContracts.length === 0 ? (
+        <div className="mt-6 rounded-xl border border-dashed border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
+          Nenhum contrato corresponde aos filtros.
+        </div>
       ) : (
-        <div className="mt-8 overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white">
           <table className="w-full text-sm">
             <thead className="border-b border-slate-100 bg-slate-50 text-left text-slate-500">
               <tr>
@@ -230,11 +302,12 @@ export default function AdminContractsPage() {
                 <th className="px-4 py-3 font-medium">Cliente</th>
                 <th className="px-4 py-3 font-medium">Projeto</th>
                 <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium">Próximo passo</th>
                 <th className="px-4 py-3 font-medium">Ações</th>
               </tr>
             </thead>
             <tbody>
-              {contracts.map((contract) => (
+              {visibleContracts.map((contract) => (
                 <tr
                   key={contract.id}
                   className="border-b border-slate-50 last:border-0"
@@ -259,6 +332,11 @@ export default function AdminContractsPage() {
                         Assinatura recebida
                       </span>
                     )}
+                  </td>
+                  <td
+                    className={`px-4 py-3 ${nextStepColors[getAdminNextStep(contract).tone]}`}
+                  >
+                    {getAdminNextStep(contract).label}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-2">
@@ -297,6 +375,14 @@ export default function AdminContractsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AdminContractsPage() {
+  return (
+    <Suspense fallback={<p className="text-sm text-slate-500">Carregando...</p>}>
+      <AdminContractsContent />
+    </Suspense>
   );
 }
 

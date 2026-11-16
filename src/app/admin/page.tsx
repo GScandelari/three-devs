@@ -51,7 +51,7 @@ export default function AdminDashboardPage() {
     {
       label: "Contratos pendentes",
       value: stats.pendingContracts,
-      href: "/admin/contracts",
+      href: "/admin/contracts?status=pending",
     },
   ];
 
