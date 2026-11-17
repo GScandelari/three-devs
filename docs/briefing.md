@@ -18,8 +18,9 @@ Registro da reformulação feita com a skill `landing-page-architect` em 17/11/2
 - **Público:** empresas e fundadores que precisam de software sob medida.
 - **Objetivo da página:** iniciar conversas de projeto (captação B2B) e dar
   acesso ao portal para quem já é cliente.
-- **Canal de conversão:** e-mail `contato@serifalabs.com` (confirmado pelo time;
-  a caixa precisa existir). WhatsApp aprovado, número pendente.
+- **Canal de conversão:** WhatsApp (13) 99664-9260 como canal principal, com
+  mensagens por serviço; e-mail `contato@serifalabs.com` como alternativa (a
+  caixa precisa ser criada na Hostinger).
 - **Nicho:** não regulado. Valem CDC (publicidade honesta) e LGPD (a página não
   coleta dados; o contato é por `mailto:`).
 

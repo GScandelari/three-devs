@@ -1,4 +1,4 @@
-import { mailtoHref, services } from "@/config/site";
+import { mailtoHref, services, whatsappHref } from "@/config/site";
 
 export function Services() {
   return (
@@ -31,7 +31,12 @@ export function Services() {
           className="mt-16 border-t border-[color:var(--lp-line)]"
         >
           {services.map((service) => {
-            const href = mailtoHref(service.subject);
+            // WhatsApp com a mensagem do serviço; sem número, cai no e-mail.
+            const href =
+              whatsappHref(
+                `Olá! Vim pelo site da Serifa Labs. ${service.subject}.`,
+              ) ?? mailtoHref(service.subject);
+            const external = href?.startsWith("https://");
             return (
               <li
                 key={service.id}
@@ -48,6 +53,9 @@ export function Services() {
                 {href && (
                   <a
                     href={href}
+                    {...(external
+                      ? { target: "_blank", rel: "noopener noreferrer" }
+                      : {})}
                     data-pattern="U1"
                     className="lp-link group justify-self-start py-1 text-sm font-medium text-[color:var(--lp-link)] sm:col-span-3 sm:justify-self-end"
                   >

@@ -25,6 +25,16 @@ const jsonLd = {
       url: site.url,
       description: site.description,
       ...(site.contact.email ? { email: site.contact.email } : {}),
+      ...(site.contact.whatsapp
+        ? {
+            contactPoint: {
+              "@type": "ContactPoint",
+              telephone: site.contact.phoneE164,
+              contactType: "sales",
+              availableLanguage: "pt-BR",
+            },
+          }
+        : {}),
       knowsAbout: services.map((s) => s.title),
     },
     {

@@ -25,6 +25,16 @@ export function Footer() {
           <Link href="/login" className="lp-link py-1">
             Portal do cliente
           </Link>
+          {site.contact.whatsapp && (
+            <a
+              href={`https://wa.me/${site.contact.whatsapp}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="lp-link py-1"
+            >
+              WhatsApp {site.contact.phoneDisplay}
+            </a>
+          )}
           {site.contact.email && (
             <a href={`mailto:${site.contact.email}`} className="lp-link py-1">
               {site.contact.email}

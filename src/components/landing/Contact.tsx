@@ -35,33 +35,41 @@ export function Contact() {
           data-pattern="R2"
           className="mt-10 flex flex-wrap items-center gap-4"
         >
-          {email && (
-            <a
-              href={email}
-              className="lp-btn group inline-flex min-h-12 max-w-full items-center gap-2 rounded-full bg-white px-6 text-[0.95rem] font-medium text-ink transition-[background-color,transform] duration-200 hover:bg-paper-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-            >
-              <span className="truncate">
-                Escrever para {site.contact.email}
-              </span>
-              <span className="lp-arrow" aria-hidden="true">
-                →
-              </span>
-            </a>
-          )}
           {whatsapp && (
             <a
               href={whatsapp}
               target="_blank"
               rel="noopener noreferrer"
-              className="lp-btn inline-flex min-h-12 items-center rounded-full border border-white/60 px-6 text-[0.95rem] font-medium text-white transition-[background-color,transform] duration-200 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="lp-btn group inline-flex min-h-12 items-center gap-2 rounded-full bg-white px-6 text-[0.95rem] font-medium text-ink transition-[background-color,transform] duration-200 hover:bg-paper-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               Conversar pelo WhatsApp
+              <span className="lp-arrow" aria-hidden="true">
+                →
+              </span>
+            </a>
+          )}
+          {email && (
+            <a
+              href={email}
+              className={`lp-btn group inline-flex min-h-12 max-w-full items-center gap-2 rounded-full px-6 text-[0.95rem] font-medium transition-[background-color,transform] duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+                whatsapp
+                  ? "border border-white/60 text-white hover:bg-white/10"
+                  : "bg-white text-ink hover:bg-paper-deep"
+              }`}
+            >
+              <span className="truncate">
+                Escrever para {site.contact.email}
+              </span>
             </a>
           )}
         </div>
-        {email && (
+        {whatsapp && (
           <p className="mt-4 text-sm text-[color:var(--lp-muted)]">
-            O botão abre o seu programa de e-mail com o assunto preenchido.
+            O WhatsApp abre com uma mensagem pronta para{" "}
+            <span className="whitespace-nowrap">
+              {site.contact.phoneDisplay}
+            </span>
+            .
           </p>
         )}
 

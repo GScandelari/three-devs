@@ -13,8 +13,11 @@ export const site = {
   contact: {
     // Confirmado pelo time em 17/11/2026. A caixa precisa existir antes do merge.
     email: "contato@serifalabs.com",
-    // Número com DDI 55 + DDD + telefone, só dígitos. Pendente.
-    whatsapp: null as string | null,
+    // DDI 55 + DDD + telefone, só dígitos. Confirmado pelo time em 17/11/2026.
+    whatsapp: "5513996649260" as string | null,
+    // Mesmo número, para exibir e para o JSON-LD.
+    phoneDisplay: "(13) 99664-9260",
+    phoneE164: "+55-13-99664-9260",
   },
 } as const;
 
