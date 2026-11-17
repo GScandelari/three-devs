@@ -441,7 +441,7 @@ exports.sendClientWelcome = onCall(
       const token = await issuePasswordToken(uid, email, "welcome");
       await sendEmail({
         to: email,
-        subject: "Boas-vindas à Three Devs - defina sua senha",
+        subject: "Boas-vindas à Serifa Labs - defina sua senha",
         html: buildWelcomeEmailHtml({
           name: client.name,
           link: buildPasswordLink(appUrl.value(), token),
@@ -495,7 +495,7 @@ exports.requestPasswordReset = onCall(
       const token = await issuePasswordToken(user.uid, email, "reset");
       await sendEmail({
         to: email,
-        subject: "Redefinição de senha - Three Devs",
+        subject: "Redefinição de senha - Serifa Labs",
         html: buildResetEmailHtml({
           name,
           link: buildPasswordLink(appUrl.value(), token),

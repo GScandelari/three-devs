@@ -7,9 +7,9 @@ export type { ContractTemplateData };
 export const AGENCY_DOCUMENT = "00.000.000/0000-00";
 
 export const EMPTY_CONTRACT_TEMPLATE: ContractTemplateData = {
-  agencyName: "Three Devs",
+  agencyName: "Serifa Labs",
   agencyDocument: AGENCY_DOCUMENT,
-  agencyEmail: "contato@three-devs.com",
+  agencyEmail: "contato@serifalabs.com",
   clientName: "",
   clientDocument: "",
   clientEmail: "",
@@ -105,7 +105,7 @@ export function renderContractHtml(data: ContractTemplateData): string {
   };
 
   return `
-<p class="intro">Nada avança sem o contrato assinado. Este documento protege a Three Devs e o cliente.</p>
+<p class="intro">Nada avança sem o contrato assinado. Este documento protege a Serifa Labs e o cliente.</p>
 
 <h1>Contrato de Prestação de Serviços</h1>
 
@@ -254,7 +254,7 @@ export function renderContractHtml(data: ContractTemplateData): string {
 
 <h2>10. Portal do Cliente e Onboarding</h2>
 <p>
-  Após a assinatura deste contrato, o Cliente terá acesso ao portal Three Devs,
+  Após a assinatura deste contrato, o Cliente terá acesso ao portal Serifa Labs,
   onde poderá acompanhar projetos, status, contratos, links e notas.
   Sem a assinatura deste instrumento, o onboarding e o acesso ao portal
   permanecem bloqueados.

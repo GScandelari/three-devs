@@ -10,9 +10,11 @@ export default function AdminLayout({
 }) {
   return (
     <AdminGuard>
-      <div className="flex min-h-screen bg-slate-50">
+      <div className="flex min-h-screen flex-col bg-paper text-ink lg:flex-row">
         <AdminSidebar />
-        <main className="flex-1 overflow-auto p-8">{children}</main>
+        <main className="min-w-0 flex-1 overflow-x-auto px-4 py-8 sm:px-8 lg:px-10 lg:py-10">
+          {children}
+        </main>
       </div>
     </AdminGuard>
   );

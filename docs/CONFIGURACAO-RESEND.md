@@ -8,7 +8,7 @@ os contratos em PDF.
 
 O envio funciona da seguinte forma:
 
-1. O administrador preenche o contrato no painel da Three Devs.
+1. O administrador preenche o contrato no painel da Serifa Labs.
 2. A Cloud Function gera o PDF no servidor.
 3. A função lê `RESEND_API_KEY` do Google Cloud Secret Manager.
 4. A Resend envia o PDF anexado ao e-mail do cliente.
@@ -51,7 +51,7 @@ ficam associados à equipe selecionada no painel.
 
 ## 2. Adicionar e verificar o domínio
 
-Para enviar contratos a clientes usando um endereço da Three Devs, o domínio
+Para enviar contratos a clientes usando um endereço da Serifa Labs, o domínio
 do remetente precisa estar verificado.
 
 1. No painel da Resend, abra **Domains**.
@@ -74,7 +74,7 @@ Depois que o domínio estiver verificado, escolha o endereço que aparecerá com
 remetente. Exemplo:
 
 ```text
-Three Devs <contratos@seudominio.com>
+Serifa Labs <contratos@seudominio.com>
 ```
 
 O domínio depois de `@` deve ser o mesmo domínio, ou um subdomínio autorizado,
@@ -86,7 +86,7 @@ que aparece como verificado na Resend.
 2. Clique em **Create API Key**.
 3. Use um nome identificável, como `three-devs-production`.
 4. Selecione a permissão **Sending access**.
-5. Se possível, restrinja a chave ao domínio cadastrado para a Three Devs.
+5. Se possível, restrinja a chave ao domínio cadastrado para a Serifa Labs.
 6. Confirme a criação.
 7. Copie imediatamente o valor que começa com `re_`.
 
@@ -110,7 +110,7 @@ npm run firebase -- login
 ```
 
 O navegador será aberto para autenticação. Use uma conta que tenha acesso ao
-projeto Firebase da Three Devs.
+projeto Firebase da Serifa Labs.
 
 Confirme o projeto selecionado:
 
@@ -159,7 +159,7 @@ Além do secret, as funções usam estes parâmetros:
 
 | Parâmetro | Exemplo | Finalidade |
 |-----------|---------|------------|
-| `CONTRACT_EMAIL_FROM` | `Three Devs <contratos@seudominio.com>` | Remetente do e-mail |
+| `CONTRACT_EMAIL_FROM` | `Serifa Labs <contratos@seudominio.com>` | Remetente do e-mail |
 | `APP_URL` | `https://serifalabs.com` | Link para o portal incluído no e-mail |
 | `EMAIL_REPLY_TO` | `serifa.labs@gmail.com` | Opcional: endereço que recebe as respostas dos clientes (`reply_to`). Vazio, as respostas vão para o remetente |
 
@@ -169,7 +169,7 @@ arquivo `functions/.env.three-devs` a partir delas. Informe o remetente com o
 nome e o endereço completo, incluindo os sinais `<` e `>`:
 
 ```text
-Three Devs <contratos@seudominio.com>
+Serifa Labs <contratos@seudominio.com>
 ```
 
 Em `APP_URL`, use sempre o domínio oficial, `https://serifalabs.com`: o login
@@ -245,7 +245,7 @@ pessoa real. Consulte a
 
 ### Teste completo pelo painel
 
-1. Entre no painel administrativo da Three Devs.
+1. Entre no painel administrativo da Serifa Labs.
 2. Abra **Contratos**.
 3. Crie ou selecione um contrato de teste.
 4. Preencha os campos obrigatórios:
@@ -319,7 +319,7 @@ Uma resposta `401` normalmente indica chave ausente, inválida ou revogada.
 Crie uma nova chave com **Sending access**, atualize o secret e publique a
 função novamente.
 
-### Erro de permissão no painel da Three Devs
+### Erro de permissão no painel da Serifa Labs
 
 O envio só pode ser executado por um usuário autenticado que possua documento
 em `developers/{uid}` no Firestore. Confirme que o usuário está cadastrado como

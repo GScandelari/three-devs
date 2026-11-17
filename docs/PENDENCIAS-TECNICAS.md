@@ -26,7 +26,7 @@ Em produção, todas as Cloud Functions que enviam e-mail (`sendContractEmail`,
 `sendClientWelcome` e `requestPasswordReset`) usam:
 
 ```text
-CONTRACT_EMAIL_FROM="Three Devs <onboarding@resend.dev>"
+CONTRACT_EMAIL_FROM="Serifa Labs <onboarding@resend.dev>"
 APP_URL=https://serifalabs.com
 ```
 

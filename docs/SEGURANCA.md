@@ -1,4 +1,4 @@
-# Segurança — Three Devs
+# Segurança — Serifa Labs
 
 ## Auditoria do repositório Git
 
