@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { changeOwnPassword } from "@/lib/firebase/auth";
 import {
@@ -10,6 +9,7 @@ import {
 } from "@/lib/firebase/firestore";
 import { resolvePostLoginRoute, useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/Button";
+import { AuthShell } from "@/components/auth/AuthShell";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 
 export default function ChangePasswordPage() {
@@ -80,63 +80,54 @@ export default function ChangePasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-6">
-      <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <Link href="/" className="text-2xl font-semibold text-slate-900">
-            Three<span className="text-indigo-600">Devs</span>
-          </Link>
-          <p className="mt-2 text-sm text-slate-500">Redefinição obrigatória</p>
-        </div>
-
-        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-          Você está usando uma senha temporária. Defina uma nova senha para
-          continuar {developer ? "no painel admin" : "no portal"}.
-        </div>
-
-        <form
-          onSubmit={handleSubmit}
-          className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm"
-        >
-          <h1 className="text-xl font-semibold text-slate-900">
-            Criar nova senha
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Olá, {(developer ?? client)?.name}. Escolha uma senha segura.
-          </p>
-
-          <div className="mt-6 space-y-4">
-            <Field
-              label="Senha temporária atual"
-              type="password"
-              value={currentPassword}
-              onChange={setCurrentPassword}
-              required
-            />
-            <Field
-              label="Nova senha"
-              type="password"
-              value={newPassword}
-              onChange={setNewPassword}
-              required
-            />
-            <Field
-              label="Confirmar nova senha"
-              type="password"
-              value={confirmPassword}
-              onChange={setConfirmPassword}
-              required
-            />
-          </div>
-
-          {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-
-          <Button type="submit" disabled={saving} className="mt-6 w-full py-2.5">
-            {saving ? "Salvando..." : "Salvar e continuar"}
-          </Button>
-        </form>
+    <AuthShell subtitle="Redefinição obrigatória">
+      <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+        Você está usando uma senha temporária. Defina uma nova senha para
+        continuar {developer ? "no painel admin" : "no portal"}.
       </div>
-    </div>
+
+      <form
+        onSubmit={handleSubmit}
+        className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm"
+      >
+        <h1 className="text-xl font-semibold text-slate-900">
+          Criar nova senha
+        </h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Olá, {(developer ?? client)?.name}. Escolha uma senha segura.
+        </p>
+
+        <div className="mt-6 space-y-4">
+          <Field
+            label="Senha temporária atual"
+            type="password"
+            value={currentPassword}
+            onChange={setCurrentPassword}
+            required
+          />
+          <Field
+            label="Nova senha"
+            type="password"
+            value={newPassword}
+            onChange={setNewPassword}
+            required
+          />
+          <Field
+            label="Confirmar nova senha"
+            type="password"
+            value={confirmPassword}
+            onChange={setConfirmPassword}
+            required
+          />
+        </div>
+
+        {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+
+        <Button type="submit" disabled={saving} className="mt-6 w-full py-2.5">
+          {saving ? "Salvando..." : "Salvar e continuar"}
+        </Button>
+      </form>
+    </AuthShell>
   );
 }
 
@@ -155,7 +146,9 @@ function Field({
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-700">{label}</label>
+      <label className="block text-sm font-medium text-slate-700">
+        {label}
+      </label>
       {type === "password" ? (
         <PasswordInput
           required={required}

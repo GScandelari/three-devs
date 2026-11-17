@@ -31,7 +31,7 @@ export function PasswordInput({
         aria-label={visible ? "Ocultar senha" : "Mostrar senha"}
         aria-pressed={visible}
         title={visible ? "Ocultar senha" : "Mostrar senha"}
-        className="absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-r-lg text-slate-400 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40"
+        className="absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-r-xl text-slate-400 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/40"
       >
         {visible ? <EyeOffIcon /> : <EyeIcon />}
       </button>

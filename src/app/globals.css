@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/*
+ * Identidade Serifa Labs (docs/briefing.md).
+ * Paleta: papel-lavanda, tinta-índigo, índigo-sinal e vermelho-revisão.
+ * O vermelho-revisão é só marca gráfica (traços, sublinhados): no papel ele
+ * passa de 3:1, mas não de 4,5:1, então nunca vira cor de texto corrido.
+ */
 :root {
   --background: #ffffff;
   --foreground: #0f172a;
@@ -10,6 +16,27 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-newsreader);
+
+  --color-paper: #f7f6fd; /* papel-lavanda */
+  --color-paper-deep: #ece9fb; /* papel-lavanda, cartões e faixas */
+  --color-ink: #17133b; /* tinta-índigo */
+  --color-ink-soft: #241f52; /* tinta-índigo, superfícies sobre a tinta */
+  --color-ink-line: #36306b; /* bordas sobre a tinta */
+  --color-graphite: #2a2840; /* texto corrido no papel */
+  --color-muted: #5e5a7a; /* texto secundário no papel (6,3:1) */
+  --color-mist: #b7b2d9; /* texto secundário na tinta (8,8:1) */
+  --color-signal: #4f3df0; /* índigo-sinal: CTAs e foco */
+  --color-signal-hover: #3f2ed8;
+  --color-signal-light: #a398ff; /* índigo-sinal legível sobre a tinta */
+  --color-signal-soft: #e4e0fd;
+  --color-proof: #e5484d; /* vermelho-revisão: só traços e marcas */
+
+  /* As transições e animações padrão do Tailwind usam os tokens de movimento. */
+  --default-transition-timing-function: var(--mk-ease-out);
+  --ease-in-out: var(--mk-ease-inout);
+  --ease-out: var(--mk-ease-out);
+  --animate-pulse: pulse 2s var(--mk-ease-inout) infinite;
 }
 
 body {
@@ -22,4 +49,281 @@ body {
 input::-ms-reveal,
 input::-ms-clear {
   display: none;
+}
+
+/* =========================================================================
+ * Movimento (motion kit da skill landing-page-architect, ref. 12)
+ * Tokens: 2 curvas + 1 de assinatura, 3 durações, 1 distância, 1 stagger.
+ * Os estados escondidos só valem com `mk-motion` no <html>, que só existe
+ * quando há JS e não há redução de movimento nem economia de dados.
+ * ========================================================================= */
+:root {
+  --mk-ease-out: cubic-bezier(0.2, 1, 0.32, 1);
+  --mk-ease-inout: cubic-bezier(0.7, 0, 0.24, 1);
+  --mk-ease-sig: cubic-bezier(0.76, 0, 0.24, 1);
+  --mk-dur-ui: 0.22s;
+  --mk-dur-reveal: 0.8s;
+  --mk-dur-scene: 1.2s;
+  --mk-rise: 32px;
+  --mk-stagger: 0.06s;
+}
+
+/* ---------- Cenas de cor da landing (papel → tinta → papel → índigo) ----------
+ * Com JS, a cena da seção no meio da tela pinta a página inteira (.lp).
+ * Sem JS, cada seção pinta a própria cena. */
+.lp,
+:is(html[data-mk-scene="papel"] .lp, .no-js [data-mk-scene="papel"]) {
+  --mk-bg: var(--color-paper);
+  --mk-ink: var(--color-ink);
+  --lp-muted: var(--color-muted);
+  --lp-line: #dcd8f3;
+  --lp-card: #ffffff;
+  --lp-link: var(--color-signal);
+}
+:is(html[data-mk-scene="tinta"] .lp, .no-js [data-mk-scene="tinta"]) {
+  --mk-bg: var(--color-ink);
+  --mk-ink: var(--color-paper);
+  --lp-muted: var(--color-mist);
+  --lp-line: var(--color-ink-line);
+  --lp-card: var(--color-ink-soft);
+  --lp-link: var(--color-signal-light);
+}
+:is(html[data-mk-scene="indigo"] .lp, .no-js [data-mk-scene="indigo"]) {
+  --mk-bg: var(--color-signal);
+  --mk-ink: #ffffff;
+  --lp-muted: #e4e0fd;
+  --lp-line: #7a6cf5;
+  --lp-card: #5a49f2;
+  --lp-link: #ffffff;
+}
+.lp {
+  background: var(--mk-bg);
+  color: var(--mk-ink);
+  transition:
+    background-color var(--mk-dur-scene) var(--mk-ease-inout),
+    color var(--mk-dur-scene) var(--mk-ease-inout);
+}
+.no-js .lp [data-mk-scene] {
+  background: var(--mk-bg);
+  color: var(--mk-ink);
+}
+
+/* ---------- R2: revelação por observador ---------- */
+.mk-motion [data-mk="rise"] {
+  opacity: 0;
+  transform: translate3d(0, var(--mk-rise), 0);
+  transition:
+    opacity var(--mk-dur-reveal) var(--mk-ease-out),
+    transform var(--mk-dur-reveal) var(--mk-ease-out);
+  transition-delay: calc(var(--mk-i, 0) * var(--mk-stagger) + var(--mk-delay, 0s));
+}
+.mk-motion [data-mk="fade"] {
+  opacity: 0;
+  transition: opacity var(--mk-dur-reveal) var(--mk-ease-out);
+  transition-delay: calc(var(--mk-i, 0) * var(--mk-stagger) + var(--mk-delay, 0s));
+}
+.mk-motion [data-mk].mk-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- L1: título do hero palavra a palavra (só transform: é o LCP) ---------- */
+.mk-word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+}
+.mk-piece {
+  display: inline-block;
+}
+.mk-motion [data-mk="split-words"] .mk-piece {
+  transform: translate3d(0, 110%, 0);
+  transition: transform var(--mk-dur-reveal) var(--mk-ease-out);
+  transition-delay: calc(var(--mk-i, 0) * var(--mk-stagger));
+}
+.mk-motion [data-mk="split-words"].mk-in .mk-piece {
+  transform: none;
+}
+
+/* ---------- Assinatura: a passada de revisão que dá serifa à palavra ----------
+ * A palavra nasce em fonte mono (o rascunho, o código). Um traço vermelho-revisão
+ * atravessa a palavra e, atrás dele, surge a versão serifada (o acabamento).
+ * Sem movimento, a versão serifada aparece direto e o rascunho fica oculto. */
+.sig-word {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+}
+.sig-final {
+  display: inline-block;
+}
+.sig-draft,
+.sig-pass {
+  display: none;
+}
+.mk-motion .sig-draft {
+  display: block;
+  position: absolute;
+  inset: 0 auto 0 0;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 0.8em;
+  letter-spacing: -0.04em;
+  line-height: 1.45;
+  white-space: nowrap;
+  color: var(--color-muted);
+  clip-path: inset(0 0 0 0);
+  transition: clip-path var(--mk-dur-scene) var(--mk-ease-sig) 1s;
+}
+.mk-motion .sig-final {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path var(--mk-dur-scene) var(--mk-ease-sig) 1s;
+}
+.mk-motion .sig-pass {
+  display: block;
+  position: absolute;
+  top: 8%;
+  bottom: 4%;
+  left: 0;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--color-proof);
+  opacity: 0;
+  transform: translate3d(0, 0, 0);
+  transition:
+    transform var(--mk-dur-scene) var(--mk-ease-sig) 1s,
+    opacity var(--mk-dur-ui) linear 1s;
+}
+.mk-motion .sig-word.mk-in .sig-draft {
+  clip-path: inset(0 0 0 100%);
+}
+.mk-motion .sig-word.mk-in .sig-final {
+  clip-path: inset(0 0 0 0);
+}
+.mk-motion .sig-word.mk-in .sig-pass {
+  opacity: 0;
+  transform: translate3d(var(--sig-w, 0px), 0, 0);
+  animation: sig-pass-fade calc(var(--mk-dur-scene) + 1s) linear both;
+}
+@keyframes sig-pass-fade {
+  0%,
+  44% {
+    opacity: 0;
+  }
+  47%,
+  95% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ---------- U1: sistema de hover ---------- */
+.lp-link {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size var(--mk-dur-ui) var(--mk-ease-out);
+}
+.lp-arrow {
+  display: inline-block;
+  transition: transform var(--mk-dur-ui) var(--mk-ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .lp-link:hover {
+    background-size: 100% 1px;
+  }
+  .group:hover .lp-arrow,
+  .lp-link:hover .lp-arrow {
+    transform: translate3d(4px, 0, 0);
+  }
+}
+.lp-btn:active {
+  transform: scale(0.97);
+}
+
+/* ---------- S6: fio condutor do processo ---------- */
+[data-mk-draw] {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+.mk-motion [data-mk-draw] {
+  stroke-dashoffset: var(--draw-offset, 1);
+}
+.lp-step-dot {
+  transition:
+    background-color var(--mk-dur-ui) var(--mk-ease-out),
+    transform var(--mk-dur-ui) var(--mk-ease-out);
+}
+.mk-motion [data-step]:not([data-reached]) .lp-step-dot {
+  background-color: var(--lp-line);
+  transform: scale(0.7);
+}
+
+/* ---------- S1: palco fixo do portal ---------- */
+.portal-zone {
+  transition:
+    box-shadow var(--mk-dur-ui) var(--mk-ease-out),
+    opacity var(--mk-dur-ui) var(--mk-ease-out);
+}
+.mk-motion [data-stage-active] .portal-zone {
+  opacity: 0.45;
+}
+.mk-motion [data-stage-active="status"] .portal-zone[data-zone="status"],
+.mk-motion [data-stage-active="contrato"] .portal-zone[data-zone="contrato"],
+.mk-motion [data-stage-active="links"] .portal-zone[data-zone="links"],
+.mk-motion [data-stage-active="avisos"] .portal-zone[data-zone="avisos"] {
+  opacity: 1;
+  box-shadow: 0 0 0 2px var(--color-signal);
+}
+.mk-motion [data-stage-step] {
+  transition: opacity var(--mk-dur-ui) var(--mk-ease-out);
+}
+@media (min-width: 1024px) {
+  [data-stage-step] {
+    transition:
+      opacity var(--mk-dur-ui) var(--mk-ease-out),
+      border-color var(--mk-dur-ui) var(--mk-ease-out);
+  }
+  .mk-motion [data-stage-step]:not([data-active]) {
+    opacity: 0.4;
+  }
+  .mk-motion [data-stage-step][data-active] {
+    border-color: var(--color-signal);
+  }
+}
+
+/* ---------- FAQ ---------- */
+.lp-faq summary {
+  list-style: none;
+  cursor: pointer;
+}
+.lp-faq summary::-webkit-details-marker {
+  display: none;
+}
+.lp-faq .lp-faq-icon {
+  transition: transform var(--mk-dur-ui) var(--mk-ease-out);
+}
+.lp-faq[open] .lp-faq-icon {
+  transform: rotate(45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp,
+  .lp * {
+    scroll-behavior: auto !important;
+  }
+}
+html:has(.lp) {
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  html:has(.lp) {
+    scroll-behavior: auto;
+  }
 }

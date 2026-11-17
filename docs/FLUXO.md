@@ -1,4 +1,4 @@
-# Fluxo de negócio — Three Devs
+# Fluxo de negócio — Serifa Labs
 
 ## Papéis
 

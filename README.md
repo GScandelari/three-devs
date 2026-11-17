@@ -1,10 +1,16 @@
-# Three Devs
+# Serifa Labs
 
 Startup de desenvolvimento de software — landing page, portal do cliente e painel admin.
 
 **Repositório:** [github.com/GScandelari/three-devs](https://github.com/GScandelari/three-devs)
 
 **Site:** https://serifalabs.com (endereço Firebase secundário: https://three-devs.web.app)
+
+> O projeto se chamava Three Devs. A marca agora é **Serifa Labs** em tudo o que
+> o cliente vê; identificadores de infraestrutura (projeto Firebase, bucket,
+> domínios `.web.app` e o repositório) continuam `three-devs`. Detalhes em
+> [docs/PENDENCIAS-VALIDACAO.md](docs/PENDENCIAS-VALIDACAO.md) e a direção da
+> landing em [docs/briefing.md](docs/briefing.md).
 
 ## Stack
 
@@ -102,7 +108,7 @@ npm run firebase -- deploy --only functions
 ```
 
 Durante o deploy, informe `CONTRACT_EMAIL_FROM` no formato
-`Three Devs <contratos@seudominio.com>` e, se necessário, ajuste `APP_URL`.
+`Serifa Labs <contratos@seudominio.com>` e, se necessário, ajuste `APP_URL`.
 O domínio do remetente precisa estar verificado na Resend. Para publicar apenas
 o site depois disso, continue usando `npm run deploy:hosting`.
 
@@ -151,7 +157,7 @@ Variables (parâmetros das functions, não são segredos):
 
 | Variável | Valor atual | Uso |
 |---|---|---|
-| `CONTRACT_EMAIL_FROM` | `Three Devs <onboarding@resend.dev>` | Remetente dos e-mails |
+| `CONTRACT_EMAIL_FROM` | `Serifa Labs <onboarding@resend.dev>` | Remetente dos e-mails |
 | `APP_URL` | `https://serifalabs.com` | Domínio dos links nos e-mails |
 | `EMAIL_REPLY_TO` | `serifa.labs@gmail.com` | Opcional: recebe as respostas dos clientes aos e-mails |
 
