@@ -11,9 +11,12 @@ export function Faq() {
         <h2
           data-mk="rise"
           data-pattern="R2"
-          className="font-serif text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em] lg:col-span-4"
+          className="font-semibold text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.04em] lg:col-span-4"
         >
-          Perguntas <em className="italic">frequentes</em>
+          Perguntas{" "}
+          <em className="font-serif font-normal italic tracking-[-0.01em] text-[color:var(--lp-link)]">
+            frequentes
+          </em>
         </h2>
 
         <div className="border-t border-[color:var(--lp-line)] lg:col-span-8">
@@ -22,7 +25,7 @@ export function Faq() {
               key={item.q}
               className="lp-faq group border-b border-[color:var(--lp-line)]"
             >
-              <summary className="flex items-start justify-between gap-6 py-6 text-lg font-medium focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-signal">
+              <summary className="flex items-start justify-between gap-6 py-6 text-lg font-medium focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--lp-link)]">
                 {item.q}
                 <span
                   aria-hidden="true"

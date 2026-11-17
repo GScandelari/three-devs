@@ -255,7 +255,7 @@ export default function AdminClientsPage() {
       {editClient && (
         <form
           onSubmit={handleEditSubmit}
-          className="mt-6 rounded-xl border border-indigo-200 bg-indigo-50/50 p-6"
+          className="mt-6 rounded-xl border border-signal/30 bg-signal-soft/60 p-6"
         >
           <h2 className="font-medium text-slate-900">
             Editar cliente — {editClient.name}
@@ -292,7 +292,7 @@ export default function AdminClientsPage() {
             />
           </div>
 
-          <div className="mt-6 border-t border-indigo-100 pt-4">
+          <div className="mt-6 border-t border-signal-soft pt-4">
             <h3 className="text-sm font-medium text-slate-900">
               Senha temporária
             </h3>
@@ -320,7 +320,7 @@ export default function AdminClientsPage() {
                     mustChangePassword: e.target.checked,
                   })
                 }
-                className="h-4 w-4 rounded border-slate-300 text-indigo-600"
+                className="h-4 w-4 rounded border-slate-300 text-signal-deep"
               />
               Exigir que o cliente troque a senha no próximo acesso
             </label>
@@ -409,7 +409,7 @@ export default function AdminClientsPage() {
                     <button
                       type="button"
                       onClick={() => openEdit(client)}
-                      className="text-xs font-medium text-indigo-600 hover:text-indigo-500"
+                      className="text-xs font-medium text-signal-deep hover:text-ink"
                     >
                       Editar
                     </button>
@@ -450,7 +450,7 @@ function Field({
           autoComplete="new-password"
           onChange={(e) => onChange(e.target.value)}
           wrapperClassName="mt-1"
-          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
         />
       ) : (
         <input
@@ -459,7 +459,7 @@ function Field({
           value={value}
           placeholder={placeholder}
           onChange={(e) => onChange(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
         />
       )}
     </div>

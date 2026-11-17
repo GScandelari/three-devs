@@ -1,10 +1,11 @@
 @import "tailwindcss";
 
 /*
- * Identidade Serifa Labs (docs/briefing.md).
- * Paleta: papel-lavanda, tinta-índigo, índigo-sinal e vermelho-revisão.
- * O vermelho-revisão é só marca gráfica (traços, sublinhados): no papel ele
- * passa de 3:1, mas não de 4,5:1, então nunca vira cor de texto corrido.
+ * Identidade Serifa Labs (docs/briefing.md), direção "Escuro técnico".
+ * Paleta: grafite, osso e laranja-sinal.
+ * O laranja-sinal (#FF5A1F) é fundo de CTA (com texto grafite, 6,3:1) e texto
+ * sobre o grafite (6,3:1). Sobre o osso ele não passa de 4,5:1: texto e links
+ * no claro usam o laranja-fundo (#B93A0A, 5:1).
  */
 :root {
   --background: #ffffff;
@@ -18,19 +19,20 @@
   --font-mono: var(--font-geist-mono);
   --font-serif: var(--font-newsreader);
 
-  --color-paper: #f7f6fd; /* papel-lavanda */
-  --color-paper-deep: #ece9fb; /* papel-lavanda, cartões e faixas */
-  --color-ink: #17133b; /* tinta-índigo */
-  --color-ink-soft: #241f52; /* tinta-índigo, superfícies sobre a tinta */
-  --color-ink-line: #36306b; /* bordas sobre a tinta */
-  --color-graphite: #2a2840; /* texto corrido no papel */
-  --color-muted: #5e5a7a; /* texto secundário no papel (6,3:1) */
-  --color-mist: #b7b2d9; /* texto secundário na tinta (8,8:1) */
-  --color-signal: #4f3df0; /* índigo-sinal: CTAs e foco */
-  --color-signal-hover: #3f2ed8;
-  --color-signal-light: #a398ff; /* índigo-sinal legível sobre a tinta */
-  --color-signal-soft: #e4e0fd;
-  --color-proof: #e5484d; /* vermelho-revisão: só traços e marcas */
+  --color-paper: #f2f0eb; /* osso */
+  --color-paper-deep: #e7e4dc; /* osso, cartões e faixas */
+  --color-ink: #0c0c10; /* grafite */
+  --color-ink-soft: #16161c; /* grafite, superfícies sobre o grafite */
+  --color-ink-line: #2a2a33; /* bordas sobre o grafite */
+  --color-graphite: #24232a; /* texto corrido no osso */
+  --color-muted: #5c5a55; /* texto secundário no osso (6:1) */
+  --color-mist: #a3a1a8; /* texto secundário no grafite (7,6:1) */
+  --color-signal: #ff5a1f; /* laranja-sinal: CTAs, foco e destaques no escuro */
+  --color-signal-hover: #ff7a45;
+  --color-signal-light: #ff7a45; /* laranja legível sobre o grafite (7,5:1) */
+  --color-signal-deep: #b93a0a; /* laranja para texto e links no claro (5:1) */
+  --color-signal-soft: #ffe6dc;
+  --color-proof: #ff5a1f; /* traços e marcas gráficas */
 
   /* As transições e animações padrão do Tailwind usam os tokens de movimento. */
   --default-transition-timing-function: var(--mk-ease-out);
@@ -68,33 +70,25 @@ input::-ms-clear {
   --mk-stagger: 0.06s;
 }
 
-/* ---------- Cenas de cor da landing (papel → tinta → papel → índigo) ----------
+/* ---------- Cenas de cor da landing (grafite e osso alternando) ----------
  * Com JS, a cena da seção no meio da tela pinta a página inteira (.lp).
  * Sem JS, cada seção pinta a própria cena. */
 .lp,
-:is(html[data-mk-scene="papel"] .lp, .no-js [data-mk-scene="papel"]) {
-  --mk-bg: var(--color-paper);
-  --mk-ink: var(--color-ink);
-  --lp-muted: var(--color-muted);
-  --lp-line: #dcd8f3;
-  --lp-card: #ffffff;
-  --lp-link: var(--color-signal);
-}
 :is(html[data-mk-scene="tinta"] .lp, .no-js [data-mk-scene="tinta"]) {
   --mk-bg: var(--color-ink);
   --mk-ink: var(--color-paper);
   --lp-muted: var(--color-mist);
-  --lp-line: var(--color-ink-line);
-  --lp-card: var(--color-ink-soft);
-  --lp-link: var(--color-signal-light);
+  --lp-line: #26262e;
+  --lp-card: #15151b;
+  --lp-link: var(--color-signal);
 }
-:is(html[data-mk-scene="indigo"] .lp, .no-js [data-mk-scene="indigo"]) {
-  --mk-bg: var(--color-signal);
-  --mk-ink: #ffffff;
-  --lp-muted: #e4e0fd;
-  --lp-line: #7a6cf5;
-  --lp-card: #5a49f2;
-  --lp-link: #ffffff;
+:is(html[data-mk-scene="papel"] .lp, .no-js [data-mk-scene="papel"]) {
+  --mk-bg: var(--color-paper);
+  --mk-ink: var(--color-ink);
+  --lp-muted: var(--color-muted);
+  --lp-line: #dedbd2;
+  --lp-card: #ffffff;
+  --lp-link: var(--color-signal-deep);
 }
 .lp {
   background: var(--mk-bg);
@@ -115,12 +109,16 @@ input::-ms-clear {
   transition:
     opacity var(--mk-dur-reveal) var(--mk-ease-out),
     transform var(--mk-dur-reveal) var(--mk-ease-out);
-  transition-delay: calc(var(--mk-i, 0) * var(--mk-stagger) + var(--mk-delay, 0s));
+  transition-delay: calc(
+    var(--mk-i, 0) * var(--mk-stagger) + var(--mk-delay, 0s)
+  );
 }
 .mk-motion [data-mk="fade"] {
   opacity: 0;
   transition: opacity var(--mk-dur-reveal) var(--mk-ease-out);
-  transition-delay: calc(var(--mk-i, 0) * var(--mk-stagger) + var(--mk-delay, 0s));
+  transition-delay: calc(
+    var(--mk-i, 0) * var(--mk-stagger) + var(--mk-delay, 0s)
+  );
 }
 .mk-motion [data-mk].mk-in {
   opacity: 1;
@@ -148,7 +146,7 @@ input::-ms-clear {
 }
 
 /* ---------- Assinatura: a passada de revisão que dá serifa à palavra ----------
- * A palavra nasce em fonte mono (o rascunho, o código). Um traço vermelho-revisão
+ * A palavra nasce em fonte mono (o rascunho, o código). Um traço laranja-sinal
  * atravessa a palavra e, atrás dele, surge a versão serifada (o acabamento).
  * Sem movimento, a versão serifada aparece direto e o rascunho fica oculto. */
 .sig-word {
@@ -174,7 +172,7 @@ input::-ms-clear {
   letter-spacing: -0.04em;
   line-height: 1.45;
   white-space: nowrap;
-  color: var(--color-muted);
+  color: var(--lp-muted);
   clip-path: inset(0 0 0 0);
   transition: clip-path var(--mk-dur-scene) var(--mk-ease-sig) 1s;
 }
@@ -190,7 +188,7 @@ input::-ms-clear {
   left: 0;
   width: 3px;
   border-radius: 2px;
-  background: var(--color-proof);
+  background: var(--color-signal);
   opacity: 0;
   transform: translate3d(0, 0, 0);
   transition:
@@ -279,7 +277,7 @@ input::-ms-clear {
 .mk-motion [data-stage-active="links"] .portal-zone[data-zone="links"],
 .mk-motion [data-stage-active="avisos"] .portal-zone[data-zone="avisos"] {
   opacity: 1;
-  box-shadow: 0 0 0 2px var(--color-signal);
+  box-shadow: 0 0 0 2px var(--color-signal-deep);
 }
 .mk-motion [data-stage-step] {
   transition: opacity var(--mk-dur-ui) var(--mk-ease-out);
@@ -294,7 +292,72 @@ input::-ms-clear {
     opacity: 0.4;
   }
   .mk-motion [data-stage-step][data-active] {
-    border-color: var(--color-signal);
+    border-color: var(--color-signal-deep);
+  }
+}
+
+/* ---------- Hero: prévia do portal ----------
+ * Com movimento, a barra de progresso enche e as etapas se marcam em sequência
+ * depois que o cartão entra. Sem movimento (ou sem JS), tudo já aparece pronto. */
+.hero-grid {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.045) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(
+    ellipse 80% 70% at 70% 40%,
+    #000 30%,
+    transparent 75%
+  );
+}
+.hero-glow {
+  background: radial-gradient(closest-side, rgb(255 90 31 / 0.22), transparent);
+}
+.pv-bar {
+  transform-origin: left center;
+}
+.mk-motion .pv-card .pv-bar {
+  transform: scaleX(0.18);
+  transition: transform var(--mk-dur-scene) var(--mk-ease-sig) 0.9s;
+}
+.mk-motion .pv-card.mk-in .pv-bar {
+  transform: none;
+}
+.mk-motion .pv-card .pv-item {
+  opacity: 0.35;
+  transition: opacity var(--mk-dur-ui) var(--mk-ease-out);
+  transition-delay: calc(1.1s + var(--mk-i, 0) * 0.35s);
+}
+.mk-motion .pv-card .pv-check {
+  transform: scale(0.4);
+  opacity: 0;
+  transition:
+    transform var(--mk-dur-ui) var(--mk-ease-out),
+    opacity var(--mk-dur-ui) var(--mk-ease-out);
+  transition-delay: calc(1.1s + var(--mk-i, 0) * 0.35s);
+}
+.mk-motion .pv-card.mk-in .pv-item {
+  opacity: 1;
+}
+.mk-motion .pv-card.mk-in .pv-check {
+  transform: none;
+  opacity: 1;
+}
+.pv-pulse {
+  animation: pv-pulse 2.4s var(--mk-ease-inout) 2;
+}
+@keyframes pv-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(255 90 31 / 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgb(255 90 31 / 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pv-pulse {
+    animation: none;
   }
 }
 

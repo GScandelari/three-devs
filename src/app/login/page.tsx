@@ -71,15 +71,12 @@ function LoginForm() {
     <AuthShell
       subtitle="Portal do cliente e painel da equipe"
       footer={
-        <Link
-          href="/"
-          className="font-medium text-signal hover:text-signal-hover"
-        >
+        <Link href="/" className="font-medium text-signal-deep hover:text-ink">
           ← Voltar ao site
         </Link>
       }
     >
-      <h1 className="font-serif text-[2.6rem] leading-none tracking-[-0.02em]">
+      <h1 className="text-[2.6rem] font-semibold leading-none tracking-[-0.04em]">
         Entrar
       </h1>
       <p className="mt-3 text-[0.95rem] text-muted">
@@ -121,7 +118,7 @@ function LoginForm() {
               </label>
               <Link
                 href="/forgot-password"
-                className="text-sm font-medium text-signal hover:text-signal-hover"
+                className="text-sm font-medium text-signal-deep hover:text-ink"
               >
                 Esqueci minha senha
               </Link>

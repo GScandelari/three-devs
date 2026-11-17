@@ -105,7 +105,7 @@ export default function AdminProjectsPage() {
                 required
                 value={form.clientId}
                 onChange={(e) => setForm({ ...form, clientId: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-signal"
               >
                 <option value="">Selecione...</option>
                 {clients.map((c) => (
@@ -123,7 +123,7 @@ export default function AdminProjectsPage() {
                 required
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-signal"
               />
             </div>
             <div>
@@ -137,7 +137,7 @@ export default function AdminProjectsPage() {
                 onChange={(e) =>
                   setForm({ ...form, description: e.target.value })
                 }
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-signal"
               />
             </div>
             <div>
@@ -151,7 +151,7 @@ export default function AdminProjectsPage() {
                 onChange={(e) =>
                   setForm({ ...form, objective: e.target.value })
                 }
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-signal"
               />
             </div>
           </div>
@@ -201,7 +201,7 @@ export default function AdminProjectsPage() {
                   <td className="px-4 py-3 text-right">
                     <Link
                       href={`/admin/project?id=${project.id}`}
-                      className="text-indigo-600 hover:text-indigo-500"
+                      className="text-signal-deep hover:text-ink"
                     >
                       Gerenciar →
                     </Link>

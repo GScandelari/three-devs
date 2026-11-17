@@ -106,7 +106,7 @@ export function ClientCombobox({
               }}
               onMouseEnter={() => setActiveIndex(index)}
               className={`cursor-pointer px-3 py-2 text-sm ${
-                index === activeIndex ? "bg-indigo-50" : ""
+                index === activeIndex ? "bg-signal-soft/60" : ""
               }`}
             >
               <span className="font-medium text-slate-900">{client.name}</span>

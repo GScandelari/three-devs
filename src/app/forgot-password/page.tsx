@@ -33,7 +33,7 @@ export default function ForgotPasswordPage() {
       footer={
         <Link
           href="/login"
-          className="font-medium text-signal hover:text-signal-hover"
+          className="font-medium text-signal-deep hover:text-ink"
         >
           ← Voltar ao login
         </Link>
@@ -75,7 +75,7 @@ export default function ForgotPasswordPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
                 placeholder="seu@email.com"
               />
             </div>

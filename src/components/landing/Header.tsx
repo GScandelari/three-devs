@@ -16,7 +16,7 @@ export function Header() {
         <Link
           href="/"
           aria-label="Serifa Labs, página inicial"
-          className="rounded-md text-[1.35rem] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-signal"
+          className="rounded-md text-[1.35rem] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--lp-link)]"
         >
           <Wordmark tone="scene" />
         </Link>
@@ -39,7 +39,7 @@ export function Header() {
           </Link>
           <a
             href="#contato"
-            className="lp-btn inline-flex min-h-10 items-center rounded-full bg-signal px-4 text-sm font-medium text-white ring-1 ring-white/30 transition-[background-color,transform] duration-200 hover:bg-signal-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal"
+            className="lp-btn inline-flex min-h-10 items-center rounded-full bg-signal px-4 text-sm font-medium text-ink ring-1 ring-white/30 transition-[background-color,transform] duration-200 hover:bg-signal-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--lp-link)]"
           >
             <span className="sm:hidden">Contato</span>
             <span className="hidden sm:inline">Iniciar um projeto</span>

@@ -5,13 +5,13 @@ import { site } from "@/config/site";
 export function Footer() {
   return (
     <footer
-      data-mk-scene="indigo"
+      data-mk-scene="tinta"
       className="border-t border-[color:var(--lp-line)] py-10"
     >
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div>
           <span className="text-xl">
-            <Wordmark tone="accent" />
+            <Wordmark tone="scene" />
           </span>
           <p className="mt-2 text-sm text-[color:var(--lp-muted)]">
             © {new Date().getFullYear()} {site.name}. Todos os direitos

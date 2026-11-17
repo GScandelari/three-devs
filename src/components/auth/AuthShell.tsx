@@ -9,7 +9,7 @@ type AuthShellProps = {
 };
 
 // Moldura das telas de acesso (login e senhas): painel da marca em
-// tinta-índigo à esquerda (desktop) e o formulário no papel-lavanda.
+// grafite à esquerda (desktop) e o formulário no osso.
 export function AuthShell({ subtitle, children, footer }: AuthShellProps) {
   return (
     <div className="flex min-h-[100dvh] flex-1 bg-paper text-ink">
@@ -28,10 +28,12 @@ export function AuthShell({ subtitle, children, footer }: AuthShellProps) {
             aria-hidden="true"
             className="pointer-events-none absolute inset-x-0 -top-10 h-px bg-proof/60"
           />
-          <p className="font-serif text-[clamp(2.2rem,3.4vw,3.2rem)] leading-[1.08] tracking-[-0.02em]">
+          <p className="font-semibold text-[clamp(2.2rem,3.4vw,3.2rem)] leading-[1.08] tracking-[-0.04em]">
             O seu projeto, do rascunho ao{" "}
-            <em className="italic text-signal-light">acabamento</em>, em um só
-            lugar.
+            <em className="font-serif font-normal italic text-signal">
+              acabamento
+            </em>
+            , em um só lugar.
           </p>
           <ul className="mt-10 space-y-3 text-[0.95rem] text-mist">
             {[
@@ -74,6 +76,6 @@ export function AuthShell({ subtitle, children, footer }: AuthShellProps) {
 
 // Estilos compartilhados dos campos das telas de acesso.
 export const authInputClass =
-  "mt-1.5 w-full rounded-xl border border-[#dcd8f3] bg-white px-3.5 py-2.5 text-[0.95rem] text-ink outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-muted/60 focus:border-signal focus:ring-4 focus:ring-signal/15";
+  "mt-1.5 w-full rounded-xl border border-[#dedbd2] bg-white px-3.5 py-2.5 text-[0.95rem] text-ink outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-muted/60 focus:border-signal focus:ring-4 focus:ring-signal/15";
 
 export const authLabelClass = "block text-sm font-medium text-graphite";

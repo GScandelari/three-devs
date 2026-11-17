@@ -1,14 +1,14 @@
 // Logotipo em texto da Serifa Labs: "Serifa" na serifada, "Labs" na mono.
-// O traço vermelho-revisão sob o "S" é a marca gráfica da identidade.
+// O traço laranja-sinal sob o "S" é a marca gráfica da identidade.
 type WordmarkProps = {
   className?: string;
-  // "dark": sobre a tinta-índigo; "accent": sobre o índigo-sinal;
+  // "dark": sobre o grafite; "accent": sobre fundos de cor;
   // "scene": acompanha a cena de cor da landing (--lp-link).
   tone?: "light" | "dark" | "accent" | "scene";
 };
 
 const labsTone = {
-  light: "text-signal",
+  light: "text-signal-deep",
   dark: "text-signal-light",
   accent: "text-white/80",
   scene: "text-[color:var(--lp-link)]",
