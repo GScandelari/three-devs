@@ -45,7 +45,7 @@ function ProjectDetailContent() {
     return (
       <p className="text-sm text-slate-500">
         ID do projeto não informado.{" "}
-        <Link href="/portal" className="text-indigo-600">
+        <Link href="/portal" className="text-signal-deep">
           Voltar
         </Link>
       </p>
@@ -62,7 +62,7 @@ function ProjectDetailContent() {
         <p className="text-slate-600">{error || "Projeto não encontrado."}</p>
         <Link
           href="/portal"
-          className="mt-4 inline-block text-sm text-indigo-600 hover:text-indigo-500"
+          className="mt-4 inline-block text-sm text-signal-deep hover:text-ink"
         >
           ← Voltar aos projetos
         </Link>
@@ -80,7 +80,7 @@ function ProjectDetailContent() {
         </p>
         <Link
           href="/portal"
-          className="mt-4 inline-block text-sm text-indigo-600 hover:text-indigo-500"
+          className="mt-4 inline-block text-sm text-signal-deep hover:text-ink"
         >
           ← Voltar aos projetos
         </Link>
@@ -184,7 +184,7 @@ function ProjectDetailContent() {
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-indigo-600 hover:text-indigo-500"
+                      className="text-sm text-signal-deep hover:text-ink"
                     >
                       {link.label} →
                     </a>

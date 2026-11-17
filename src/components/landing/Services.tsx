@@ -4,7 +4,7 @@ export function Services() {
   return (
     <section
       id="servicos"
-      data-mk-scene="tinta"
+      data-mk-scene="papel"
       className="scroll-mt-16 py-24 sm:py-32"
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -12,9 +12,12 @@ export function Services() {
           <h2
             data-mk="rise"
             data-pattern="R2"
-            className="font-serif text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em] lg:col-span-6"
+            className="font-semibold text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.04em] lg:col-span-6"
           >
-            O que a gente <em className="italic">constrói</em>
+            O que a gente{" "}
+            <em className="font-serif font-normal italic tracking-[-0.01em] text-[color:var(--lp-link)]">
+              constrói
+            </em>
           </h2>
           <p
             data-mk="rise"
@@ -44,7 +47,7 @@ export function Services() {
                 data-pattern="R2"
                 className="grid gap-4 border-b border-[color:var(--lp-line)] py-9 sm:grid-cols-12 sm:items-baseline sm:gap-8"
               >
-                <h3 className="font-serif text-[1.85rem] leading-tight sm:col-span-4">
+                <h3 className="font-semibold tracking-[-0.02em] text-[1.85rem] leading-tight sm:col-span-4">
                   {service.title}
                 </h3>
                 <p className="leading-relaxed text-[color:var(--lp-muted)] sm:col-span-5">

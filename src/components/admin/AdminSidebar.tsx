@@ -115,7 +115,7 @@ export function AdminSidebar() {
           <div className="flex items-center gap-3">
             <span
               aria-hidden="true"
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-signal text-xs font-semibold text-white"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-signal text-xs font-semibold text-ink"
             >
               {initials(developer?.name)}
             </span>

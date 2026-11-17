@@ -128,7 +128,11 @@ export function MotionLayer() {
         const vh = window.innerHeight;
         scopes.forEach((scope) => {
           const r = scope.getBoundingClientRect();
-          const t = clamp((vh * 0.8 - r.top) / Math.max(r.height * 0.85, vh * 0.45), 0, 1);
+          const t = clamp(
+            (vh * 0.8 - r.top) / Math.max(r.height * 0.85, vh * 0.45),
+            0,
+            1,
+          );
           scope.style.setProperty("--draw-offset", (1 - t).toFixed(4));
           const marks = scope.querySelectorAll<HTMLElement>("[data-step]");
           marks.forEach((m, i) => {

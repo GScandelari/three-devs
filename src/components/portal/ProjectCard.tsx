@@ -13,7 +13,7 @@ const statusLabels: Record<ProjectStatus, string> = {
 const statusColors: Record<ProjectStatus, string> = {
   pending_contract: "bg-amber-100 text-amber-800",
   onboarding: "bg-blue-100 text-blue-800",
-  in_progress: "bg-indigo-100 text-indigo-800",
+  in_progress: "bg-signal-soft text-signal-deep",
   review: "bg-purple-100 text-purple-800",
   delivered: "bg-emerald-100 text-emerald-800",
   paused: "bg-slate-100 text-slate-600",

@@ -145,7 +145,7 @@ export function AdminSignaturePanel({
             href={ITI_VALIDATOR_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50"
+            className="inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium text-signal-deep hover:bg-signal-soft/60"
           >
             Abrir validador do ITI ↗
           </a>
@@ -167,7 +167,7 @@ export function AdminSignaturePanel({
                   onChange={(e) =>
                     setChecked(checked.map((v, i) => (i === index ? e.target.checked : v)))
                   }
-                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-indigo-600"
+                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-signal-deep"
                 />
                 {item}
               </label>

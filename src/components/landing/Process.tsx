@@ -1,12 +1,12 @@
 import { steps } from "@/config/site";
 
-// S6: um fio em vermelho-revisão se desenha com a rolagem e liga as etapas,
+// S6: um fio laranja-sinal se desenha com a rolagem e liga as etapas,
 // como a caneta de quem revisa um texto do começo ao fim.
 export function Process() {
   return (
     <section
       id="processo"
-      data-mk-scene="papel"
+      data-mk-scene="tinta"
       className="scroll-mt-16 py-24 sm:py-32"
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -14,9 +14,12 @@ export function Process() {
           <h2
             data-mk="rise"
             data-pattern="R2"
-            className="font-serif text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em]"
+            className="font-semibold text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.04em]"
           >
-            Da primeira conversa à <em className="italic">entrega</em>
+            Da primeira conversa à{" "}
+            <em className="font-serif font-normal italic tracking-[-0.01em] text-[color:var(--lp-link)]">
+              entrega
+            </em>
           </h2>
           <p
             data-mk="rise"
@@ -76,11 +79,11 @@ export function Process() {
             >
               <span
                 aria-hidden="true"
-                className="lp-step-dot absolute top-0 left-0 grid h-6 w-6 place-items-center rounded-full bg-signal font-mono text-[0.7rem] font-medium text-white ring-4 ring-[color:var(--mk-bg)]"
+                className="lp-step-dot absolute top-0 left-0 grid h-6 w-6 place-items-center rounded-full bg-signal font-mono text-[0.7rem] font-medium text-ink ring-4 ring-[color:var(--mk-bg)]"
               >
                 {i + 1}
               </span>
-              <h3 className="font-serif text-2xl">
+              <h3 className="font-semibold tracking-[-0.02em] text-2xl">
                 <span className="sr-only">Etapa {i + 1}: </span>
                 {step.title}
               </h3>
@@ -94,7 +97,7 @@ export function Process() {
         <div data-mk="rise" data-pattern="R2" className="mt-16">
           <a
             href="#contato"
-            className="lp-btn group inline-flex min-h-12 items-center gap-2 rounded-full bg-signal px-6 text-[0.95rem] font-medium text-white transition-[background-color,transform] duration-200 hover:bg-signal-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal"
+            className="lp-btn group inline-flex min-h-12 items-center gap-2 rounded-full bg-signal px-6 text-[0.95rem] font-medium text-ink transition-[background-color,transform] duration-200 hover:bg-signal-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--lp-link)]"
           >
             Iniciar um projeto
             <span className="lp-arrow" aria-hidden="true">

@@ -194,7 +194,7 @@ export function NotificationBell() {
           <path d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
         </svg>
         {count > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-indigo-600 px-1 text-[10px] font-medium text-white">
+          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-signal px-1 text-[10px] font-medium text-ink">
             {count > 99 ? "99+" : count}
           </span>
         )}
@@ -242,7 +242,7 @@ export function NotificationBell() {
                   >
                     <span
                       aria-hidden="true"
-                      className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-indigo-600"
+                      className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-signal"
                     />
                     <span className="min-w-0">
                       <span className="block text-sm font-medium text-slate-900">
@@ -272,7 +272,7 @@ export function NotificationBell() {
                 type="button"
                 onClick={handleClearAll}
                 disabled={clearing}
-                className="text-sm text-indigo-600 transition-colors hover:text-indigo-500 disabled:cursor-not-allowed disabled:text-indigo-300"
+                className="text-sm text-signal-deep transition-colors hover:text-ink disabled:cursor-not-allowed disabled:text-signal-deep/40"
               >
                 {clearing ? "Limpando..." : "Limpar avisos"}
               </button>

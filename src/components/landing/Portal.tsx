@@ -41,9 +41,12 @@ export function Portal() {
           <h2
             data-mk="rise"
             data-pattern="R2"
-            className="font-serif text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em]"
+            className="font-semibold text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.04em]"
           >
-            O projeto inteiro em <em className="italic">um só lugar</em>
+            O projeto inteiro em{" "}
+            <em className="font-serif font-normal italic tracking-[-0.01em] text-[color:var(--lp-link)]">
+              um só lugar
+            </em>
           </h2>
           <p
             data-mk="rise"
@@ -67,7 +70,7 @@ export function Portal() {
                 data-stage-step={f.key}
                 className="flex flex-col justify-center rounded-2xl border border-[color:var(--lp-line)] bg-[color:var(--lp-card)] p-6 lg:min-h-[52vh] lg:rounded-none lg:border-0 lg:border-l-2 lg:bg-transparent lg:py-0 lg:pl-8"
               >
-                <h3 className="font-serif text-[1.7rem] leading-tight">
+                <h3 className="font-semibold tracking-[-0.02em] text-[1.7rem] leading-tight">
                   {f.title}
                 </h3>
                 <p className="mt-3 max-w-md leading-relaxed text-[color:var(--lp-muted)]">
@@ -87,9 +90,9 @@ function PortalIllustration() {
     <figure>
       <div
         aria-hidden="true"
-        className="overflow-hidden rounded-[22px] border border-[color:var(--lp-line)] bg-white text-ink shadow-[0_30px_80px_-40px_rgba(23,19,59,0.45)]"
+        className="overflow-hidden rounded-[22px] border border-[color:var(--lp-line)] bg-white text-ink shadow-[0_30px_80px_-40px_rgba(12,12,16,0.35)]"
       >
-        <div className="flex items-center justify-between border-b border-[#ece9fb] px-5 py-3.5">
+        <div className="flex items-center justify-between border-b border-[#ebe8e0] px-5 py-3.5">
           <span className="text-base">
             <Wordmark />
             <span className="ml-2 text-xs text-muted">Portal</span>
@@ -106,7 +109,9 @@ function PortalIllustration() {
         <div className="space-y-4 p-5">
           <div>
             <p className="font-mono text-[0.7rem] text-muted">Projeto</p>
-            <p className="font-serif text-2xl">Seu projeto</p>
+            <p className="text-2xl font-semibold tracking-[-0.02em]">
+              Seu projeto
+            </p>
           </div>
 
           <div
@@ -115,7 +120,7 @@ function PortalIllustration() {
           >
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Status</span>
-              <span className="rounded-full bg-signal-soft px-2.5 py-0.5 text-xs font-medium text-signal">
+              <span className="rounded-full bg-signal-soft px-2.5 py-0.5 text-xs font-medium text-signal-deep">
                 Em andamento
               </span>
             </div>
@@ -129,7 +134,7 @@ function PortalIllustration() {
 
           <div
             data-zone="contrato"
-            className="portal-zone flex items-center justify-between rounded-xl border border-[#ece9fb] p-4"
+            className="portal-zone flex items-center justify-between rounded-xl border border-[#ebe8e0] p-4"
           >
             <span className="text-sm">Contrato de prestação de serviços</span>
             <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
@@ -139,15 +144,15 @@ function PortalIllustration() {
 
           <div
             data-zone="links"
-            className="portal-zone grid gap-2 rounded-xl border border-[#ece9fb] p-4 text-sm"
+            className="portal-zone grid gap-2 rounded-xl border border-[#ebe8e0] p-4 text-sm"
           >
             <span className="flex items-center justify-between">
-              Repositório <span className="text-signal">↗</span>
+              Repositório <span className="text-signal-deep">↗</span>
             </span>
             <span className="flex items-center justify-between">
-              Ambiente de testes <span className="text-signal">↗</span>
+              Ambiente de testes <span className="text-signal-deep">↗</span>
             </span>
-            <span className="mt-1 border-t border-[#ece9fb] pt-3 text-muted">
+            <span className="mt-1 border-t border-[#ebe8e0] pt-3 text-muted">
               Nota da equipe: nova versão publicada para revisão.
             </span>
           </div>

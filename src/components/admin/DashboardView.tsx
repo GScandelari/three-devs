@@ -104,7 +104,7 @@ export function DashboardView({
           <p className="min-h-4 font-mono text-xs text-muted first-letter:uppercase">
             {today}
           </p>
-          <h1 className="mt-2 font-serif text-[2.4rem] leading-tight tracking-[-0.02em]">
+          <h1 className="mt-2 text-[2.4rem] font-semibold leading-tight tracking-[-0.04em]">
             {greeting}
             {firstName ? `, ${firstName}` : ""}
           </h1>
@@ -115,13 +115,13 @@ export function DashboardView({
         <div className="flex gap-2">
           <Link
             href="/admin/projects"
-            className="rounded-xl border border-[#dcd8f3] bg-white px-4 py-2.5 text-sm font-medium text-graphite transition-colors hover:border-signal/40 hover:text-signal"
+            className="rounded-xl border border-[#dedbd2] bg-white px-4 py-2.5 text-sm font-medium text-graphite transition-colors hover:border-signal/40 hover:text-signal-deep"
           >
             Projetos
           </Link>
           <Link
             href="/admin/contracts"
-            className="rounded-xl bg-signal px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-signal-hover"
+            className="rounded-xl bg-signal px-4 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-signal-hover"
           >
             Contratos
           </Link>
@@ -149,7 +149,7 @@ export function DashboardView({
               className={`group rounded-2xl border bg-white p-4 sm:p-5 transition-[border-color,box-shadow] duration-200 hover:shadow-[0_12px_32px_-18px_rgba(23,19,59,0.35)] ${
                 attention
                   ? "border-amber-300 hover:border-amber-400"
-                  : "border-[#e3e0f6] hover:border-signal/40"
+                  : "border-[#e6e3db] hover:border-signal/40"
               }`}
             >
               <div className="flex items-center justify-between">
@@ -157,14 +157,14 @@ export function DashboardView({
                   className={`grid h-10 w-10 place-items-center rounded-xl ${
                     attention
                       ? "bg-amber-100 text-amber-800"
-                      : "bg-signal-soft text-signal"
+                      : "bg-signal-soft text-signal-deep"
                   }`}
                 >
                   <Icon />
                 </span>
                 <span
                   aria-hidden="true"
-                  className="text-muted/60 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-signal"
+                  className="text-muted/60 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-signal-deep"
                 >
                   →
                 </span>
@@ -188,7 +188,7 @@ export function DashboardView({
       <div className="mt-10 grid gap-6 xl:grid-cols-3">
         <section className="xl:col-span-2">
           <SectionTitle title="Projetos recentes" href="/admin/projects" />
-          <div className="overflow-hidden rounded-2xl border border-[#e3e0f6] bg-white">
+          <div className="overflow-hidden rounded-2xl border border-[#e6e3db] bg-white">
             {!data ? (
               <RowsSkeleton />
             ) : data.projects.length === 0 ? (
@@ -196,7 +196,7 @@ export function DashboardView({
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[520px] text-sm">
-                  <thead className="border-b border-[#efedfa] text-left text-xs text-muted">
+                  <thead className="border-b border-[#efece5] text-left text-xs text-muted">
                     <tr>
                       <th className="px-5 py-3 font-medium">Projeto</th>
                       <th className="px-5 py-3 font-medium">Status</th>
@@ -207,12 +207,12 @@ export function DashboardView({
                     {data.projects.slice(0, 6).map((project) => (
                       <tr
                         key={project.id}
-                        className="border-b border-[#f3f1fc] transition-colors last:border-0 hover:bg-paper"
+                        className="border-b border-[#f5f3ee] transition-colors last:border-0 hover:bg-paper"
                       >
                         <td className="px-5 py-3.5">
                           <Link
                             href={`/admin/project?id=${project.id}`}
-                            className="font-medium text-ink hover:text-signal"
+                            className="font-medium text-ink hover:text-signal-deep"
                           >
                             {project.name}
                           </Link>
@@ -255,13 +255,13 @@ export function DashboardView({
 
         <section>
           <SectionTitle title="Contratos pendentes" href="/admin/contracts" />
-          <div className="rounded-2xl border border-[#e3e0f6] bg-white">
+          <div className="rounded-2xl border border-[#e6e3db] bg-white">
             {!data ? (
               <RowsSkeleton />
             ) : pendingContracts.length === 0 ? (
               <Empty text="Nenhum contrato pendente. Tudo assinado." />
             ) : (
-              <ul className="divide-y divide-[#f3f1fc]">
+              <ul className="divide-y divide-[#f5f3ee]">
                 {pendingContracts.slice(0, 5).map((contract) => {
                   const review = hasSignatureToReview(contract);
                   return (
@@ -281,7 +281,7 @@ export function DashboardView({
                         <span
                           className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
                             review
-                              ? "bg-signal-soft text-signal"
+                              ? "bg-signal-soft text-signal-deep"
                               : contractStatusColors[contract.status]
                           }`}
                         >
@@ -305,10 +305,10 @@ export function DashboardView({
 function SectionTitle({ title, href }: { title: string; href: string }) {
   return (
     <div className="mb-3 flex items-center justify-between">
-      <h2 className="font-serif text-xl">{title}</h2>
+      <h2 className="text-xl font-semibold tracking-[-0.02em]">{title}</h2>
       <Link
         href={href}
-        className="text-sm font-medium text-signal hover:text-signal-hover"
+        className="text-sm font-medium text-signal-deep hover:text-ink"
       >
         Ver todos
       </Link>

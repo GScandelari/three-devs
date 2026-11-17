@@ -66,7 +66,7 @@ export default function Home() {
       <MotionLayer />
       <a
         href="#conteudo"
-        className="sr-only z-[60] rounded-md bg-signal px-4 py-2 text-white focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+        className="sr-only z-[60] rounded-md bg-signal px-4 py-2 text-ink focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
       >
         Pular para o conteúdo
       </a>

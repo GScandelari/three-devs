@@ -117,7 +117,7 @@ export function ClientSignaturePanel({
   const finalizing = Boolean(contract.signature?.finalFile);
 
   return (
-    <section className="mb-6 rounded-xl border border-indigo-200 bg-white p-6">
+    <section className="mb-6 rounded-xl border border-signal/30 bg-white p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <h2 className="font-medium text-slate-900">Assinar com gov.br</h2>
         <SignatureStatusBadge status={status} finalizing={finalizing} />
@@ -148,7 +148,7 @@ export function ClientSignaturePanel({
             href={GOVBR_HELP_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-indigo-600 hover:text-indigo-500"
+            className="text-signal-deep hover:text-ink"
           >
             Saiba mais
           </a>
@@ -164,7 +164,7 @@ export function ClientSignaturePanel({
             href={GOVBR_SIGNER_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-indigo-600 hover:text-indigo-500"
+            className="text-signal-deep hover:text-ink"
           >
             assinador gov.br
           </a>
@@ -227,7 +227,7 @@ function SignatureStatusBadge({
   finalizing: boolean;
 }) {
   const { label, className } = finalizing
-    ? { label: "Em finalização", className: "bg-indigo-100 text-indigo-800" }
+    ? { label: "Em finalização", className: "bg-signal-soft text-signal-deep" }
     : {
         awaiting: { label: "Aguardando seu envio", className: "bg-amber-100 text-amber-800" },
         received: { label: "Recebida, em conferência", className: "bg-slate-100 text-slate-700" },
