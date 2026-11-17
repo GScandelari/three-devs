@@ -16,7 +16,7 @@ export function Process() {
             data-pattern="R2"
             className="font-serif text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em]"
           >
-            Do primeiro e-mail à <em className="italic">entrega</em>
+            Da primeira conversa à <em className="italic">entrega</em>
           </h2>
           <p
             data-mk="rise"

@@ -11,8 +11,9 @@ export const site = {
   locale: "pt_BR",
 
   contact: {
-    // Confirmado pelo time em 17/11/2026. A caixa precisa existir antes do merge.
-    email: "contato@serifalabs.com",
+    // contato@serifalabs.com, confirmado pelo time em 17/11/2026. Fica oculto
+    // (null) até a caixa existir na Hostinger; depois, é só voltar o endereço.
+    email: null as string | null,
     // DDI 55 + DDD + telefone, só dígitos. Confirmado pelo time em 17/11/2026.
     whatsapp: "5513996649260" as string | null,
     // Mesmo número, para exibir e para o JSON-LD.
@@ -79,7 +80,7 @@ export const steps = [
 export const faq = [
   {
     q: "Como um projeto começa?",
-    a: "Você nos escreve contando a ideia. Um dos desenvolvedores conduz a conversa, alinha o escopo com o time e apresenta uma proposta. Com a proposta aceita, enviamos o contrato.",
+    a: "Você nos chama no WhatsApp contando a ideia. Um dos desenvolvedores conduz a conversa, alinha o escopo com o time e apresenta uma proposta. Com a proposta aceita, enviamos o contrato.",
   },
   {
     q: "Quanto custa um projeto?",

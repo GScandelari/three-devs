@@ -13,7 +13,9 @@ ausente fica `null` em `src/config/site.ts` e a página omite o bloco.
   `contato` no domínio `serifalabs.com`. Como o DNS do domínio já está na
   Hostinger, ela costuma adicionar os registros MX sozinha; confira em
   Domínios → DNS se aparecem os MX indicados pela própria Hostinger. Enquanto a
-  caixa não existe, o WhatsApp é o canal principal da página.
+  caixa não existe, o e-mail fica **oculto** na página (`email: null` em
+  `src/config/site.ts`) e o WhatsApp é o único canal. Com a caixa criada, troque
+  `null` por `"contato@serifalabs.com"` e o botão, o rodapé e o JSON-LD voltam.
 - [x] **WhatsApp:** (13) 99664-9260, confirmado em 17/11/2026. É o canal
   principal da página enquanto o e-mail não existe.
 - [ ] **Assinatura pelo gov.br:** a página e o login citam a assinatura do
