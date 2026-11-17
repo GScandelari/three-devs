@@ -104,7 +104,7 @@ export function DashboardView({
           <p className="min-h-4 font-mono text-xs text-muted first-letter:uppercase">
             {today}
           </p>
-          <h1 className="mt-2 font-serif text-[2.4rem] leading-tight tracking-[-0.02em]">
+          <h1 className="mt-2 text-[2.4rem] font-semibold leading-tight tracking-[-0.04em]">
             {greeting}
             {firstName ? `, ${firstName}` : ""}
           </h1>
@@ -305,7 +305,7 @@ export function DashboardView({
 function SectionTitle({ title, href }: { title: string; href: string }) {
   return (
     <div className="mb-3 flex items-center justify-between">
-      <h2 className="font-serif text-xl">{title}</h2>
+      <h2 className="text-xl font-semibold tracking-[-0.02em]">{title}</h2>
       <Link
         href={href}
         className="text-sm font-medium text-signal-deep hover:text-ink"
