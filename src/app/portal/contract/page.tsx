@@ -44,7 +44,7 @@ function PortalContractContent() {
     return (
       <p className="text-sm text-slate-500">
         Contrato não informado.{" "}
-        <Link href="/portal" className="text-indigo-600">
+        <Link href="/portal" className="text-signal-deep">
           Voltar
         </Link>
       </p>
@@ -61,7 +61,7 @@ function PortalContractContent() {
         <p className="text-slate-600">{error || "Contrato não encontrado."}</p>
         <Link
           href="/portal"
-          className="mt-4 inline-block text-sm text-indigo-600"
+          className="mt-4 inline-block text-sm text-signal-deep"
         >
           ← Voltar
         </Link>

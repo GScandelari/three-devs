@@ -3,9 +3,9 @@ const test = require("node:test");
 const { buildContractPdf, formatDate, safeFilename } = require("./contract-pdf");
 
 const template = {
-  agencyName: "Three Devs",
+  agencyName: "Serifa Labs",
   agencyDocument: "12.345.678/0001-90",
-  agencyEmail: "contato@three-devs.com",
+  agencyEmail: "contato@serifalabs.com",
   clientName: "Marina Oliveira",
   clientDocument: "123.456.789-00",
   clientEmail: "marina@example.com",

@@ -12,6 +12,11 @@ import { resolvePostLoginRoute } from "@/contexts/AuthContext";
 import { getFirebaseAuth } from "@/lib/firebase/config";
 import { Button } from "@/components/ui/Button";
 import { PasswordInput } from "@/components/ui/PasswordInput";
+import {
+  AuthShell,
+  authInputClass,
+  authLabelClass,
+} from "@/components/auth/AuthShell";
 
 // Mesma mensagem para senha errada e para conta sem cadastro de cliente: a tela
 // não confirma se o e-mail existe.
@@ -63,97 +68,91 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-6">
-      <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <Link href="/" className="text-2xl font-semibold text-slate-900">
-            Three<span className="text-indigo-600">Devs</span>
-          </Link>
-          <p className="mt-2 text-sm text-slate-500">Acesso ao sistema</p>
-        </div>
+    <AuthShell
+      subtitle="Portal do cliente e painel da equipe"
+      footer={
+        <Link href="/" className="font-medium text-signal-deep hover:text-ink">
+          ← Voltar ao site
+        </Link>
+      }
+    >
+      <h1 className="text-[2.6rem] font-semibold leading-none tracking-[-0.04em]">
+        Entrar
+      </h1>
+      <p className="mt-3 text-[0.95rem] text-muted">
+        Use o e-mail e a senha enviados pela equipe Serifa Labs.
+      </p>
 
-        {sessionExpired && (
-          <div className="mb-6 rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-700">
-            Sua sessão foi encerrada após 15 minutos de inatividade. Entre
-            novamente para continuar.
-          </div>
-        )}
-
-        <form
-          onSubmit={handleSubmit}
-          className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm"
+      {sessionExpired && (
+        <div
+          role="status"
+          className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
         >
-          <h1 className="text-xl font-semibold text-slate-900">Entrar</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Use as credenciais enviadas pela equipe Three Devs.
-          </p>
+          Sua sessão foi encerrada após 15 minutos de inatividade. Entre
+          novamente para continuar.
+        </div>
+      )}
 
-          <div className="mt-6 space-y-4">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-slate-700"
-              >
-                E-mail
-              </label>
-              <input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-                placeholder="seu@email.com"
-              />
-            </div>
+      <form onSubmit={handleSubmit} className="mt-8">
+        <div className="space-y-5">
+          <div>
+            <label htmlFor="email" className={authLabelClass}>
+              E-mail
+            </label>
+            <input
+              id="email"
+              type="email"
+              required
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={authInputClass}
+              placeholder="seu@email.com"
+            />
+          </div>
 
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-slate-700"
-              >
+          <div>
+            <div className="flex items-baseline justify-between">
+              <label htmlFor="password" className={authLabelClass}>
                 Senha
               </label>
-              <PasswordInput
-                id="password"
-                required
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                wrapperClassName="mt-1"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-              />
-              <div className="mt-2 text-right">
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-indigo-600 hover:text-indigo-500"
-                >
-                  Esqueci minha senha
-                </Link>
-              </div>
+              <Link
+                href="/forgot-password"
+                className="text-sm font-medium text-signal-deep hover:text-ink"
+              >
+                Esqueci minha senha
+              </Link>
             </div>
+            <PasswordInput
+              id="password"
+              required
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              wrapperClassName="mt-1.5"
+              className={authInputClass.replace("mt-1.5 ", "")}
+            />
           </div>
+        </div>
 
-          {error && (
-            <p className="mt-4 text-sm text-red-600">{error}</p>
-          )}
-
-          <Button
-            type="submit"
-            disabled={loading}
-            className="mt-6 w-full py-2.5"
+        {error && (
+          <p
+            role="alert"
+            className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"
           >
-            {loading ? "Entrando..." : "Entrar"}
-          </Button>
-        </form>
+            {error}
+          </p>
+        )}
 
-        <p className="mt-6 text-center text-sm text-slate-500">
-          <Link href="/" className="text-indigo-600 hover:text-indigo-500">
-            ← Voltar ao site
-          </Link>
-        </p>
-      </div>
-    </div>
+        <Button
+          type="submit"
+          disabled={loading}
+          className="mt-8 min-h-12 w-full rounded-xl text-[0.95rem]"
+        >
+          {loading ? "Entrando..." : "Entrar"}
+        </Button>
+      </form>
+    </AuthShell>
   );
 }
 
@@ -161,8 +160,8 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-slate-50">
-          <p className="text-sm text-slate-500">Carregando...</p>
+        <div className="flex min-h-screen items-center justify-center bg-paper">
+          <p className="text-sm text-muted">Carregando...</p>
         </div>
       }
     >

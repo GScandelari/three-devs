@@ -31,9 +31,9 @@ function buildPasswordLink(configuredAppUrl, token) {
 function emailLayout(content) {
   return `
     <div style="font-family:Arial,sans-serif;color:#172033;line-height:1.6;max-width:620px;margin:0 auto">
-      <p style="color:#4f46e5;font-size:12px;font-weight:700;letter-spacing:1.4px">THREE DEVS</p>
+      <p style="color:#4f46e5;font-size:12px;font-weight:700;letter-spacing:1.4px">SERIFA LABS</p>
       ${content}
-      <p style="color:#64748b;font-size:13px">Atenciosamente,<br>Equipe Three Devs</p>
+      <p style="color:#64748b;font-size:13px">Atenciosamente,<br>Equipe Serifa Labs</p>
     </div>
   `;
 }
@@ -47,9 +47,9 @@ function buildWelcomeEmailHtml({ name, link, appUrl }) {
   const loginUrl = `${normalizeAppUrl(appUrl)}/login/`;
 
   return emailLayout(`
-      <h1 style="font-size:24px;line-height:1.25;margin:12px 0">Boas-vindas à Three Devs</h1>
+      <h1 style="font-size:24px;line-height:1.25;margin:12px 0">Boas-vindas à Serifa Labs</h1>
       <p>Olá, ${escapeHtml(name)}.</p>
-      <p>Sua conta de acesso à Three Devs foi criada. Para entrar pela primeira vez, defina sua senha no link abaixo.</p>
+      <p>Sua conta de acesso à Serifa Labs foi criada. Para entrar pela primeira vez, defina sua senha no link abaixo.</p>
       ${actionButton(link, "Definir minha senha")}
       <p style="border-left:3px solid #f59e0b;background:#fffbeb;padding:12px 14px;font-size:14px">
         <strong>Importante:</strong> este link é válido por 72 horas. Depois desse prazo ele deixa de funcionar
@@ -63,7 +63,7 @@ function buildResetEmailHtml({ name, link }) {
   return emailLayout(`
       <h1 style="font-size:24px;line-height:1.25;margin:12px 0">Redefinição de senha</h1>
       <p>Olá${name ? `, ${escapeHtml(name)}` : ""}.</p>
-      <p>Recebemos um pedido para redefinir a senha da sua conta na Three Devs. Use o link abaixo para escolher uma nova senha.</p>
+      <p>Recebemos um pedido para redefinir a senha da sua conta na Serifa Labs. Use o link abaixo para escolher uma nova senha.</p>
       ${actionButton(link, "Redefinir minha senha")}
       <p style="font-size:14px">Este link é válido por 30 minutos e substitui qualquer link enviado anteriormente.
         Se você não fez este pedido, ignore este e-mail: sua senha atual continua a mesma.</p>

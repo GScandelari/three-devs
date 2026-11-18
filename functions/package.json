@@ -1,6 +1,6 @@
 {
-  "name": "three-devs-functions",
-  "description": "Cloud Functions for Three Devs admin operations",
+  "name": "serifa-labs-functions",
+  "description": "Cloud Functions for Serifa Labs admin operations",
   "engines": {
     "node": "24"
   },

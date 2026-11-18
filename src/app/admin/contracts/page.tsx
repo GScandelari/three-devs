@@ -211,7 +211,7 @@ function AdminContractsContent() {
                 onChange={(e) =>
                   setForm({ ...form, clientId: e.target.value, projectId: "" })
                 }
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-signal"
               >
                 <option value="">Selecione...</option>
                 {clients.map((c) => (
@@ -229,7 +229,7 @@ function AdminContractsContent() {
                 required
                 value={form.projectId}
                 onChange={(e) => setForm({ ...form, projectId: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-signal"
               >
                 <option value="">Selecione...</option>
                 {clientProjects.map((p) => (
@@ -328,7 +328,7 @@ function AdminContractsContent() {
                       {contractStatusLabels[contract.status]}
                     </span>
                     {hasSignatureToReview(contract) && (
-                      <span className="ml-2 rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-800">
+                      <span className="ml-2 rounded-full bg-signal-soft px-2 py-0.5 text-xs font-medium text-signal-deep">
                         Assinatura recebida
                       </span>
                     )}
@@ -342,7 +342,7 @@ function AdminContractsContent() {
                     <div className="flex flex-wrap gap-2">
                       <Link
                         href={`/admin/contract?id=${contract.id}`}
-                        className="rounded-md px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50"
+                        className="rounded-md px-2 py-1 text-xs font-medium text-signal-deep hover:bg-signal-soft/60"
                       >
                         {contract.status === "draft" ? "Preencher / enviar" : "Ver contrato"}
                       </Link>
@@ -401,7 +401,7 @@ function ActionBtn({
       className={`rounded-md px-2 py-1 text-xs font-medium transition-colors ${
         variant === "danger"
           ? "text-red-600 hover:bg-red-50"
-          : "text-indigo-600 hover:bg-indigo-50"
+          : "text-signal-deep hover:bg-signal-soft/60"
       }`}
     >
       {children}

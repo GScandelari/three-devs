@@ -69,7 +69,7 @@ function ProjectAdminContent() {
     return (
       <p className="text-sm text-slate-500">
         Projeto não informado.{" "}
-        <Link href="/admin/projects" className="text-indigo-600">
+        <Link href="/admin/projects" className="text-signal-deep">
           Voltar
         </Link>
       </p>
@@ -220,7 +220,7 @@ function ProjectAdminContent() {
                 onClick={() => handleStatusChange(status)}
                 className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed ${
                   project.status === status
-                    ? "bg-indigo-600 text-white"
+                    ? "bg-signal text-ink"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
@@ -253,7 +253,7 @@ function ProjectAdminContent() {
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Atualização para o cliente..."
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-signal"
             />
             <label className="flex items-center gap-2 text-sm text-slate-600">
               <input
@@ -314,13 +314,13 @@ function ProjectAdminContent() {
               value={linkLabel}
               onChange={(e) => setLinkLabel(e.target.value)}
               placeholder="Label (ex: Staging)"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-signal"
             />
             <input
               value={linkUrl}
               onChange={(e) => setLinkUrl(e.target.value)}
               placeholder="URL"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-signal"
             />
             <label className="flex items-center gap-2 text-sm text-slate-600">
               <input
@@ -350,7 +350,7 @@ function ProjectAdminContent() {
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-indigo-600 hover:text-indigo-500"
+                    className="text-sm text-signal-deep hover:text-ink"
                   >
                     {link.label} →
                   </a>
@@ -424,7 +424,7 @@ function ProjectInfoSection({
           <button
             type="button"
             onClick={startEditing}
-            className="text-xs font-medium text-indigo-600 hover:text-indigo-500"
+            className="text-xs font-medium text-signal-deep hover:text-ink"
           >
             Editar
           </button>
@@ -444,7 +444,7 @@ function ProjectInfoSection({
               onChange={(e) =>
                 setForm({ ...form, description: e.target.value })
               }
-              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-signal"
             />
           </div>
           <div>
@@ -455,7 +455,7 @@ function ProjectInfoSection({
               rows={3}
               value={form.objective}
               onChange={(e) => setForm({ ...form, objective: e.target.value })}
-              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-signal"
             />
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
@@ -511,7 +511,7 @@ function ProjectInfoSection({
             </p>
             <a
               href={`mailto:${client.email}`}
-              className="text-sm text-indigo-600 hover:text-indigo-500"
+              className="text-sm text-signal-deep hover:text-ink"
             >
               {client.email}
             </a>
@@ -541,7 +541,7 @@ function ProjectInfoSection({
             Nenhum contrato vinculado a este projeto. Crie um em{" "}
             <Link
               href="/admin/contracts"
-              className="text-indigo-600 hover:text-indigo-500"
+              className="text-signal-deep hover:text-ink"
             >
               Contratos
             </Link>{" "}
@@ -553,7 +553,7 @@ function ProjectInfoSection({
               <li key={contract.id} className="text-sm">
                 <Link
                   href={`/admin/contract?id=${contract.id}`}
-                  className="text-slate-700 hover:text-indigo-600"
+                  className="text-slate-700 hover:text-signal-deep"
                 >
                   {contract.title}
                 </Link>{" "}

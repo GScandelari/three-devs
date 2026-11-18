@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
+import { AuthShell } from "@/components/auth/AuthShell";
 import { useSearchParams } from "next/navigation";
 import { completePasswordReset } from "@/lib/firebase/admin-api";
 import { signOut } from "@/lib/firebase/auth";
@@ -57,7 +58,7 @@ function ResetPasswordForm() {
           Este link está incompleto. Solicite um novo em{" "}
           <Link
             href="/forgot-password"
-            className="text-indigo-600 hover:text-indigo-500"
+            className="text-signal-deep hover:text-ink"
           >
             Esqueci minha senha
           </Link>
@@ -107,7 +108,7 @@ function ResetPasswordForm() {
             {error.includes("expirou") && (
               <Link
                 href="/forgot-password"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
+                className="font-medium text-signal-deep hover:text-ink"
               >
                 Solicitar novo link
               </Link>
@@ -149,14 +150,16 @@ function Field({
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-700">{label}</label>
+      <label className="block text-sm font-medium text-slate-700">
+        {label}
+      </label>
       <PasswordInput
         required
         autoComplete="new-password"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         wrapperClassName="mt-1"
-        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
       />
     </div>
   );
@@ -164,21 +167,14 @@ function Field({
 
 export default function ResetPasswordPage() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-6">
-      <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <Link href="/" className="text-2xl font-semibold text-slate-900">
-            Three<span className="text-indigo-600">Devs</span>
-          </Link>
-          <p className="mt-2 text-sm text-slate-500">Acesso ao sistema</p>
-        </div>
-
-        <Suspense
-          fallback={<p className="text-center text-sm text-slate-500">Carregando...</p>}
-        >
-          <ResetPasswordForm />
-        </Suspense>
-      </div>
-    </div>
+    <AuthShell subtitle="Definir senha">
+      <Suspense
+        fallback={
+          <p className="text-center text-sm text-slate-500">Carregando...</p>
+        }
+      >
+        <ResetPasswordForm />
+      </Suspense>
+    </AuthShell>
   );
 }

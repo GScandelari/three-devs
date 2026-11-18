@@ -1,50 +1,77 @@
-const services = [
-  {
-    title: "Aplicações web",
-    description:
-      "Sistemas, dashboards e plataformas sob medida com foco em performance e usabilidade.",
-  },
-  {
-    title: "Integrações & APIs",
-    description:
-      "Conectamos seu produto a serviços externos, automatizamos fluxos e escalamos operações.",
-  },
-  {
-    title: "MVP & produtos digitais",
-    description:
-      "Validamos ideias rapidamente com entregas incrementais e acompanhamento próximo.",
-  },
-];
+import { mailtoHref, services, whatsappHref } from "@/config/site";
 
 export function Services() {
   return (
-    <section id="servicos" className="border-t border-slate-100 py-24">
-      <div className="mx-auto max-w-6xl px-6">
-        <div className="mb-16 max-w-2xl">
-          <h2 className="text-3xl font-semibold tracking-tight text-slate-900">
-            O que fazemos
+    <section
+      id="servicos"
+      data-mk-scene="papel"
+      className="scroll-mt-16 py-24 sm:py-32"
+    >
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="grid gap-6 lg:grid-cols-12">
+          <h2
+            data-mk="rise"
+            data-pattern="R2"
+            className="font-semibold text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.04em] lg:col-span-6"
+          >
+            O que a gente{" "}
+            <em className="font-serif font-normal italic tracking-[-0.01em] text-[color:var(--lp-link)]">
+              constrói
+            </em>
           </h2>
-          <p className="mt-4 text-slate-600">
-            Cada membro do time traz leads e conduz a relação com o cliente.
-            Juntos, entregamos soluções completas.
+          <p
+            data-mk="rise"
+            data-pattern="R2"
+            className="max-w-md self-end text-[color:var(--lp-muted)] lg:col-span-5 lg:col-start-8"
+          >
+            Cada desenvolvedor traz projetos e conduz a relação com o cliente.
+            Juntos, entregamos a solução inteira, do código ao ar.
           </p>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-3">
-          {services.map((service) => (
-            <div
-              key={service.title}
-              className="rounded-2xl border border-slate-100 bg-white p-8 shadow-sm"
-            >
-              <h3 className="text-lg font-semibold text-slate-900">
-                {service.title}
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-600">
-                {service.description}
-              </p>
-            </div>
-          ))}
-        </div>
+        <ul
+          data-mk-stagger
+          className="mt-16 border-t border-[color:var(--lp-line)]"
+        >
+          {services.map((service) => {
+            // WhatsApp com a mensagem do serviço; sem número, cai no e-mail.
+            const href =
+              whatsappHref(
+                `Olá! Vim pelo site da Serifa Labs. ${service.subject}.`,
+              ) ?? mailtoHref(service.subject);
+            const external = href?.startsWith("https://");
+            return (
+              <li
+                key={service.id}
+                data-mk="rise"
+                data-pattern="R2"
+                className="grid gap-4 border-b border-[color:var(--lp-line)] py-9 sm:grid-cols-12 sm:items-baseline sm:gap-8"
+              >
+                <h3 className="font-semibold tracking-[-0.02em] text-[1.85rem] leading-tight sm:col-span-4">
+                  {service.title}
+                </h3>
+                <p className="leading-relaxed text-[color:var(--lp-muted)] sm:col-span-5">
+                  {service.description}
+                </p>
+                {href && (
+                  <a
+                    href={href}
+                    {...(external
+                      ? { target: "_blank", rel: "noopener noreferrer" }
+                      : {})}
+                    data-pattern="U1"
+                    className="lp-link group justify-self-start py-1 text-sm font-medium text-[color:var(--lp-link)] sm:col-span-3 sm:justify-self-end"
+                  >
+                    Conversar sobre isso{" "}
+                    <span className="lp-arrow" aria-hidden="true">
+                      →
+                    </span>
+                  </a>
+                )}
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </section>
   );

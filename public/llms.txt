@@ -1,0 +1,21 @@
+# Serifa Labs
+
+> Estúdio de software formado por três desenvolvedores. Constrói aplicações web, integrações e APIs, e MVPs sob medida para empresas e fundadores.
+
+## Serviços
+
+- Aplicações web: sistemas, painéis e plataformas sob medida.
+- Integrações e APIs: conexão com serviços externos e automação de fluxos.
+- MVPs e produtos digitais: entregas em partes para validar cedo.
+
+## Como funciona
+
+1. Proposta: um desenvolvedor conduz a conversa, alinha o escopo com o time e apresenta a proposta.
+2. Contrato: assinado pelo cliente no gov.br antes de o projeto começar.
+3. Portal do cliente: status, links, notas, contratos e avisos do projeto.
+4. Entrega: etapas registradas no portal até a entrega.
+
+## Contato
+
+- Site: https://serifalabs.com
+- WhatsApp: +55 (13) 99664-9260 — https://wa.me/5513996649260

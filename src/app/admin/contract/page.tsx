@@ -106,7 +106,7 @@ function ContractEditorContent() {
     return (
       <p className="text-sm text-slate-500">
         Contrato não informado.{" "}
-        <Link href="/admin/contracts" className="text-indigo-600">
+        <Link href="/admin/contracts" className="text-signal-deep">
           Voltar
         </Link>
       </p>
@@ -121,7 +121,7 @@ function ContractEditorContent() {
     return (
       <p className="text-sm text-slate-500">
         Contrato não encontrado.{" "}
-        <Link href="/admin/contracts" className="text-indigo-600">
+        <Link href="/admin/contracts" className="text-signal-deep">
           Voltar
         </Link>
       </p>
@@ -404,7 +404,7 @@ function TabButton({
       onClick={onClick}
       className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
         active
-          ? "border-indigo-600 text-indigo-700"
+          ? "border-signal text-signal-deep"
           : "border-transparent text-slate-500 hover:text-slate-800"
       }`}
     >

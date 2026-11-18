@@ -54,7 +54,7 @@ function addFooter(doc, pageNumber) {
     .font("Helvetica")
     .fontSize(8)
     .fillColor(COLORS.muted)
-    .text("Three Devs - Contrato de Prestação de Serviços", PAGE.margin, bottom, {
+    .text("Serifa Labs - Contrato de Prestação de Serviços", PAGE.margin, bottom, {
       width: PAGE.width - PAGE.margin * 2 - 70,
       lineBreak: false,
     })
@@ -146,9 +146,9 @@ function buildContractPdf(contract) {
     bufferPages: true,
     info: {
       Title: contract.title || "Contrato de Prestação de Serviços",
-      Author: value(data.agencyName, "Three Devs"),
+      Author: value(data.agencyName, "Serifa Labs"),
       Subject: `Contrato do projeto ${value(data.projectName, "")}`,
-      Creator: "Three Devs",
+      Creator: "Serifa Labs",
     },
   });
 
@@ -168,7 +168,7 @@ function buildContractPdf(contract) {
     .font("Helvetica-Bold")
     .fontSize(10)
     .fillColor(COLORS.accent)
-    .text("THREE DEVS", { characterSpacing: 1.7 });
+    .text("SERIFA LABS", { characterSpacing: 1.7 });
   doc
     .moveDown(0.55)
     .font("Helvetica-Bold")
@@ -296,7 +296,7 @@ function buildContractPdf(contract) {
   addHeading(doc, 10, "Portal do cliente e onboarding");
   addParagraph(
     doc,
-    "Após a assinatura, o Cliente terá acesso ao portal Three Devs para acompanhar projetos, status, contratos, links e notas. Sem a assinatura deste instrumento, o onboarding e o acesso ao portal permanecem bloqueados.",
+    "Após a assinatura, o Cliente terá acesso ao portal Serifa Labs para acompanhar projetos, status, contratos, links e notas. Sem a assinatura deste instrumento, o onboarding e o acesso ao portal permanecem bloqueados.",
   );
 
   addHeading(doc, 11, "Foro");

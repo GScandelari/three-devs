@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/Button";
 import type { Client } from "@/lib/types";
 
 const inputClass =
-  "mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20";
+  "mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-signal focus:ring-2 focus:ring-signal/20";
 
 export default function PortalProfilePage() {
   const { client } = useAuth();
@@ -20,7 +20,7 @@ export default function PortalProfilePage() {
     return (
       <p className="text-sm text-slate-500">
         Não há cadastro de cliente para esta conta.{" "}
-        <Link href="/portal" className="text-indigo-600">
+        <Link href="/portal" className="text-signal-deep">
           Voltar
         </Link>
       </p>
