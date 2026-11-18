@@ -255,7 +255,8 @@ function AdminContractsContent() {
 
       {!loading && contracts.length > 0 && (
         <div className="mt-8 flex flex-wrap items-center gap-3">
-          <div role="group" aria-label="Filtrar por status" className="flex flex-wrap gap-2">
+          <fieldset className="flex flex-wrap gap-2">
+            <legend className="sr-only">Filtrar por status</legend>
             {FILTERS.map((f) => (
               <button
                 key={f.value}
@@ -271,7 +272,7 @@ function AdminContractsContent() {
                 {f.label}
               </button>
             ))}
-          </div>
+          </fieldset>
           <input
             type="search"
             value={query}
@@ -283,17 +284,21 @@ function AdminContractsContent() {
         </div>
       )}
 
-      {loading ? (
-        <p className="mt-8 text-sm text-slate-500">Carregando...</p>
-      ) : contracts.length === 0 ? (
+      {loading && <p className="mt-8 text-sm text-slate-500">Carregando...</p>}
+
+      {!loading && contracts.length === 0 && (
         <div className="mt-8 rounded-xl border border-dashed border-slate-200 bg-white p-12 text-center text-sm text-slate-500">
           Nenhum contrato cadastrado.
         </div>
-      ) : visibleContracts.length === 0 ? (
+      )}
+
+      {!loading && contracts.length > 0 && visibleContracts.length === 0 && (
         <div className="mt-6 rounded-xl border border-dashed border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
           Nenhum contrato corresponde aos filtros.
         </div>
-      ) : (
+      )}
+
+      {!loading && visibleContracts.length > 0 && (
         <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white">
           <table className="w-full text-sm">
             <thead className="border-b border-slate-100 bg-slate-50 text-left text-slate-500">
