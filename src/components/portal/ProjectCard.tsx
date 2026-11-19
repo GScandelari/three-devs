@@ -32,9 +32,11 @@ export function ProjectStatusBadge({ status }: { status: ProjectStatus }) {
 export function ProjectCard({
   project,
   locked = false,
+  contractHref,
 }: {
   project: Project;
   locked?: boolean;
+  contractHref?: string;
 }) {
   if (locked) {
     return (
@@ -48,6 +50,14 @@ export function ProjectCard({
         <p className="mt-2 text-sm text-slate-500">
           Disponível após a assinatura do contrato.
         </p>
+        {contractHref && (
+          <Link
+            href={contractHref}
+            className="mt-3 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-500"
+          >
+            Ver contrato →
+          </Link>
+        )}
       </div>
     );
   }

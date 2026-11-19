@@ -91,7 +91,7 @@ export function DashboardView({
         toReview > 0
           ? `${toReview} com assinatura para conferir`
           : "rascunhos e enviados",
-      href: "/admin/contracts",
+      href: "/admin/contracts?status=pending",
       icon: ClockIcon,
       attention: pendingContracts.length > 0,
     },

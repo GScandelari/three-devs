@@ -19,7 +19,8 @@ import {
   applySystemFields,
   isSameTemplate,
 } from "@/lib/contracts/template";
-import { canMarkSigned } from "@/lib/contracts/signature";
+import { canMarkSigned, getAdminNextStep } from "@/lib/contracts/signature";
+import { ContractStepper } from "@/components/contracts/ContractStepper";
 import { downloadBase64Pdf, getErrorMessage } from "@/lib/files";
 import { useAuth } from "@/contexts/AuthContext";
 import { ContractTemplateForm } from "@/components/contracts/ContractTemplateForm";
@@ -265,7 +266,15 @@ function ContractEditorContent() {
         </span>
       </div>
 
-      <div className="mt-6 flex flex-wrap gap-2">
+      <div className="mt-6">
+        <ContractStepper contract={contract} />
+        <p className="-mt-2 mb-4 text-sm text-slate-700">
+          <span className="font-medium">Próximo passo:</span>{" "}
+          {getAdminNextStep(contract).label}
+        </p>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
         <Button
           type="button"
           onClick={handleGeneratePdf}
